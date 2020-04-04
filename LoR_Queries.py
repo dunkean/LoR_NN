@@ -1,10 +1,10 @@
 import requests
 
-def is_available():
+def cards():
     url = "http://127.0.0.1:21337/positional-rectangles"
     try:
-        requests.get(url = url)
-        return True
+        r = requests.get(url = url)
+        return r.json()
     except:
-        return False
-    return False
+        return None
+    return None
