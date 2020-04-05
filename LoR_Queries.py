@@ -25,6 +25,12 @@ def cards():
     else: 
         return None
 
+def get_card_pos(card):
+    for c in cards():
+        if c["CardID"] == card["CardID"]:
+            return (c["TopLeftX"], c["TopLeftY"])
+    return (card["TopLeftX"], card["TopLeftY"])
+
 def get_playable_cards():
     board_cards = cards()
     playable_cards = []

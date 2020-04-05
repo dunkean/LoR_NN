@@ -16,55 +16,73 @@ def game_button_rect(face_card, app_width, app_height):
     h = int(0.7 * face_card[3])
     return (x,y,w,h)
 
-def number_rect(name, face_card, opp_face_card, app_width, app_height):
-        #     status.hp = self.ocr_number("hp", 6)
-        # status.opp_hp = self.ocr_number("opp_hp", 6)
-        # status.mana = self.ocr_number("mana", 3)
-        # status.opp_mana = self.ocr_number("opp_mana", 3)
-        # status.smana = self.ocr_number("smana", 4)
-        # status.opp_smana = self.ocr_number("opp_smana", 4)
+def status_number_rect(name, opp_face_card, face_card, app_width, app_height):
+    if name == "hp":
+        return hp_rect(face_card, app_width, app_height)
+    elif name == "opp_hp":
+        return opp_hp_rect(opp_face_card, app_width, app_height)
+    elif name == "mana":
+        return mana_rect(face_card, app_width, app_height)
+    elif name == "opp_mana":
+        return opp_mana_rect(opp_face_card, app_width, app_height)
+    elif name == "smana":
+        return smana_rect(face_card, app_width, app_height)
+    elif name == "opp_smana":
+         return opp_smana_rect(opp_face_card, app_width, app_height)
 
+def hp_rect(face_card, app_width, app_height):
+    print(face_card)
+    x = face_card[0] + int(0.9 * face_card[2])
+    y = face_card[1] + int(0.2 * face_card[3])
+    w = int(0.5 * face_card[2])
+    h = int(0.8 * face_card[3])
+    return (x,y,w,h) 
 
-#     def hp_rect(self, face_card):
-#         return (face_card["TopLeftX"]+ 0.90*face_card["Width"], 
-#             self.client_size[1]-face_card["TopLeftY"]+0.2*face_card["Height"], 
-#             face_card["TopLeftX"] + 1.4*face_card["Width"],
-#             self.client_size[1]-face_card["TopLeftY"]+face_card["Height"])
+def opp_hp_rect(opp_face_card, app_width, app_height):
+    x = opp_face_card[0] + int(0.9 * opp_face_card[2])
+    y = opp_face_card[1] + int(0.2 * opp_face_card[3])
+    w = int(0.5 * opp_face_card[2])
+    h = int(0.8 * opp_face_card[3])
+    return (x,y,w,h) 
 
-#     def mana_rect(self, face_card, opp = False):
-#         if(opp == True):
-#             return (self.client_size[0] - (face_card["TopLeftX"]+1.3*face_card["Width"]), 
-#                     self.client_size[1]/2 - 1.25*face_card["Height"],
-#                     self.client_size[0] - (face_card["TopLeftX"]+0.98*face_card["Width"]),
-#                     self.client_size[1]/2 - 0.85*face_card["Height"] )
-#         else:
-#             return (self.client_size[0] - (face_card["TopLeftX"]+1.30*face_card["Width"]), 
-#                     self.client_size[1]/2 + 0.80*face_card["Height"],
-#                     self.client_size[0] - (face_card["TopLeftX"]+0.98*face_card["Width"]),
-#                     self.client_size[1]/2 + 1.2*face_card["Height"])
+def mana_rect(face_card, app_width, app_height):
+    x = app_width - (face_card[0] + int(1.3 * face_card[2]))
+    y = int (app_height/2 + 0.8 * face_card[3])
+    w = int(0.32 * face_card[2])
+    h = int(0.4 * face_card[3])
+    return (x,y,w,h)
 
-#     def smana_rect(self, face_card, opp = False):
-#         if(opp == True):
-#             return (self.client_size[0] - (face_card["TopLeftX"]+0.88*face_card["Width"]), 
-#                     self.client_size[1]/2 - 1.50*face_card["Height"],
-#                     self.client_size[0] - (face_card["TopLeftX"]+0.63*face_card["Width"]),
-#                     self.client_size[1]/2 - 1.25*face_card["Height"] )
-#         else:
-#             return (self.client_size[0] - (face_card["TopLeftX"]+0.88*face_card["Width"]), 
-#                     self.client_size[1]/2 + 1.25*face_card["Height"],
-#                     self.client_size[0] - (face_card["TopLeftX"]+0.63*face_card["Width"]),
-#                     self.client_size[1]/2 + 1.50*face_card["Height"])
+def opp_mana_rect(opp_face_card, app_width, app_height):
+    x = app_width - (opp_face_card[0] + int(1.3 * opp_face_card[2]))
+    y = int (app_height/2 - 1.2 * opp_face_card[3])
+    w = int(0.32 * opp_face_card[2])
+    h = int(0.4 * opp_face_card[3])
+    return (x,y,w,h)
 
+def smana_rect(face_card, app_width, app_height):
+    x = app_width - (face_card[0] + int(0.88 * face_card[2]))
+    y = int (app_height/2 + 1.25 * face_card[3])
+    w = int(0.25 * face_card[2])
+    h = int(0.25 * face_card[3])
+    return (x,y,w,h)
 
-    
-#     def atk_token_rect(self, face_card, opp = False):
-#         if(opp == True):
-#             return (self.client_size[0] - (face_card["TopLeftX"]+1.8*face_card["Width"]), 
-#                     self.client_size[1]/2 - 2*face_card["Height"],
-#                     self.client_size[0] - face_card["TopLeftX"],
-#                     self.client_size[1]/2 - face_card["Height"] )
-#         else:
-#             return (self.client_size[0] - (face_card["TopLeftX"]+1.8*face_card["Width"]), 
-#                     self.client_size[1]/2 + face_card["Height"],
-#                     self.client_size[0] - face_card["TopLeftX"],
-#                     self.client_size[1]/2 + 2.5*face_card["Height"])
+def opp_smana_rect(opp_face_card, app_width, app_height):
+    x = app_width - (opp_face_card[0] + int(0.88 * opp_face_card[2]))
+    y = int (app_height/2 - 1.5 * opp_face_card[3])
+    w = int(0.25 * opp_face_card[2])
+    h = int(0.25 * opp_face_card[3])
+    return (x,y,w,h)
+
+def atk_token_rect(face_card, app_width, app_height):
+    x = app_width - (face_card[0] + int(1.5 * face_card[2]))
+    y = int (app_height/2 + 1.45 * face_card[3])
+    w = int(0.8 * face_card[2])
+    h = int(0.8 * face_card[3])
+    return (x,y,w,h)
+
+def opp_atk_token_rect(opp_face_card, app_width, app_height):
+    x = app_width - (opp_face_card[0] - int(0.5 * opp_face_card[2]))
+    y = int (app_height/2 - 2 * opp_face_card[3])
+    w = int(0.8 * opp_face_card[2])
+    h = int(0.8 * opp_face_card[3])
+    return (x,y,w,h)

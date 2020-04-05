@@ -1,4 +1,5 @@
 import json
+import random
 
 class Brain:
     cards_dict = {}
@@ -28,8 +29,7 @@ class Brain:
 
 
     def knapSack(self, W, wt, val, n, hand): 
-        K = [[0 for w in range(W + 1)] 
-                for i in range(n + 1)] 
+        K = [[0 for w in range(W + 1)]  for i in range(n + 1)]
 
         for i in range(n + 1): 
             for w in range(W + 1): 
@@ -60,9 +60,10 @@ class Brain:
         return invokables
 
     def choose_card_to_cast(self, cards, status):
+        print(cards.board)
         if len(cards.board) >= 6: ## TODO replace by cast only spells
             return None
-        
+        self.complete(cards.hand)
         wt = []
         val = []
         for card in cards.hand:
@@ -74,20 +75,32 @@ class Brain:
             elif card["rarity"] == "Champion": value = value * 13
             val.append(value)
 
-        max_cards_cast = min( 6 - len(cards.board), len(cards.hand) )
+        max_cards_cast = int(min( 6 - len(cards.board), len(cards.hand) ))
         invokables = self.knapSack(status.mana, wt, val, max_cards_cast, cards.hand)
-
+        print("---Brain decision---")
+        print("-".join(c["name"] for c in invokables))
         if len(invokables) == 0:
             return None
         return invokables[0]
 
     def choose_blockers(self, cards, status):
         blk_atk = []
+        self.complete(cards.opp_pit)
         attackers = cards.opp_pit
+        self.complete(cards.board)
+        # random.shuffle(attackers)
+        # random.shuffle(cards.board)
         for blocker in cards.board:
-            for attacker in attackers:
+            for attacker in cards.opp_pit:
                 if attacker["health"] <= blocker["attack"]:
                     blk_atk.append((blocker, attacker))
                     attackers.remove(attacker)
                     break
         return blk_atk
+
+    def choose_attackers(self, cards, status):
+        attackers = []
+        self.complete(cards.board)
+        for card in cards.board:
+            attackers.append(card)
+        return attackers

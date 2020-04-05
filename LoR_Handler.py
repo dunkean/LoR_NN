@@ -11,6 +11,7 @@ import random
 import LoR_Constants
 from tesserocr import PyTessBaseAPI, PSM, OEM
 from string import digits, ascii_letters
+import LoR_Brain
 
 class Region:
     name = ""
@@ -30,6 +31,9 @@ class Region:
         
     def rect(self):
         return (self.left, self.top, self.width, self.height)
+    
+    def center(self):
+        return (self.left + int(self.width/2), self.top + int(self.height/2))
     
     def update_geometry(self, rect):
         if self.width != rect[2] or self.height != rect[3]:
@@ -57,14 +61,33 @@ class Region:
         
         return 
 
+brain = LoR_Brain.Brain()
+
 class Cards:
-    hand = []
-    opp_hand = []
-    board = []
-    pit = []
-    cast = []
-    opp_pit = []
-    opp_board = []
+    hand = None
+    opp_hand = None
+    board = None
+    pit = None
+    cast = None
+    opp_pit = None
+    opp_board = None
+    
+    def __init__(self):
+        self.hand = []
+        self.opp_hand = []
+        self.board = []
+        self.pit = []
+        self.cast = []
+        self.opp_pit = []
+        self.opp_board = []
+
+    def print_all(self):
+        print("HAND>", "|".join((c["name"] for c in self.hand)))
+        print("BOARD>", "|".join((c["name"] for c in self.board)))
+        print("PIT>", "|".join((c["name"] for c in self.pit)))
+        print("CAST>", "|".join((c["name"] for c in self.cast)))
+        print("OPP_PIT>", "|".join((c["name"] for c in self.opp_pit)))
+        print("OPP_BOARD>", "|".join((c["name"] for c in self.opp_board)))
 
 class Status:
     hp = 0
@@ -150,26 +173,34 @@ class LoR_Handler:
         status.opp_mana = self.ocr_number("opp_mana", 3)
         status.smana = self.ocr_number("smana", 4)
         status.opp_smana = self.ocr_number("opp_smana", 4)
+        if self.detect("atk_token", LoR_Constants.atk_token_rect(self.face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None:
+            status.atk_token = True
+        else:
+            status.atk_token = False
+        status.opp_atk_token = ( self.detect("opp_atk_token"
+                                , LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None)
         return status
 
     def get_board_cards(self):
         self.update_geometry()
         playable_cards = queries.get_playable_cards()
-
-        cards = Cards()
+        brain.complete(playable_cards)
+        allcards = Cards()
         step = self.Lor_app.height / 6
 
         for card in playable_cards:
             y = self.Lor_app.height - card["TopLeftY"]
-            if y < 0: cards.opp_hand.append(card)
-            elif y < step: cards.opp_board.append(card)
-            elif y < 2*step: cards.opp_pit.append(card)
-            elif y < 3*step: cards.cast.append(card)
-            elif y < 4*step: cards.pit.append(card)
-            elif y < 5*step: cards.board.append(card)
-            else: cards.hand.append(card)
+            if y < 0: allcards.opp_hand.append(card)
+            elif y < step: allcards.opp_board.append(card)
+            elif y < 2*step: allcards.opp_pit.append(card)
+            elif y < 3*step: allcards.cast.append(card)
+            elif y < 4*step: allcards.pit.append(card)
+            elif y < 5*step: allcards.board.append(card)
+            else: allcards.hand.append(card)
         
-        return cards
+        return allcards
 
     def wait_for_selection_menu(self, sleep_duration = 1): ## generic query
         while(queries.board()["GameState"] != "Menus"):
@@ -192,6 +223,11 @@ class LoR_Handler:
     def invert_Y(self, pos):
         return pos[0], self.Lor_app.height - pos[1]
 
+    def card_handle_pos(self, card):
+        pos = queries.get_card_pos(card)
+        x = self.Lor_app.left + int(pos[0] + card["Width"]/5)
+        y = self.Lor_app.top + self.Lor_app.height - int(pos[1] - card["Height"]/6)
+        return x, y
 
     def click_next(self):
         pos = LoR_Constants.game_button_pos(self.face_card_rect, self.Lor_app.width, self.Lor_app.height)
@@ -202,6 +238,8 @@ class LoR_Handler:
     def click(self, pos = None):
         if pos != None:
             global_pos = self.posToGlobal(pos)
+            # center_x, center_y = self.Lor_app.center()
+            # pyautogui.moveTo(center_x, center_y, 1, pyautogui.easeInQuad)
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
         pyautogui.click()
 
@@ -209,11 +247,30 @@ class LoR_Handler:
         for card in cards:
             pos = LoR_Constants.mulligan_button_pos(card, self.Lor_app.height)
             global_pos = self.posToGlobal(pos)
+            # center_x, center_y = self.Lor_app.center()
+            # pyautogui.moveTo(center_x, center_y, 1, pyautogui.easeInQuad)
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
             pyautogui.click()
 
+    def drag_to_center(self, card):
+        x, y = self.card_handle_pos(card)
+        center_x, center_y = self.Lor_app.center()
+        # pyautogui.moveTo(center_x, center_y, 0.2, pyautogui.easeInQuad)
+        pyautogui.moveTo(x, y, 0.6, pyautogui.easeInQuad)
+        # pyautogui.moveTo(center_x, center_x, 1, pyautogui.easeInQuad)
+        pyautogui.dragTo(center_x, center_y, 0.2)
+    
+    def drag_to_block(self, block):
+        x, y = self.card_handle_pos(block[0])
+        destx, desty = self.card_handle_pos(block[1])
+        center_x, center_y = self.Lor_app.center()
+        pyautogui.moveTo(center_x, center_y, 0.2, pyautogui.easeInQuad)
+        pyautogui.moveTo(x, y, 0.3, pyautogui.easeInQuad)
+        pyautogui.dragTo(destx, desty, 0.2)
+
     def match_pattern(self, region, name):
         region.capture(self.mem_dc)
+        # region.img.show()
         im = ImageOps.grayscale(region.img)
         im = ImageOps.invert(im)
         cv_im = np.array(im.convert('L'))
@@ -252,24 +309,29 @@ class LoR_Handler:
 
 
     def ocr_number(self, name, intensity):
-
         if name not in self.regions and name != "":
-            rect = LoR_Constants.game_button_rect(self.face_card_rect, self.Lor_app.width, self.Lor_app.height)
-            rect = (btn_rect[0] + self.Lor_app.left, btn_rect[1] + self.Lor_app.top, btn_rect[2], btn_rect[3])
+            rect = LoR_Constants.status_number_rect(name, self.face_card_rect, self.opp_face_card_rect, self.Lor_app.width, self.Lor_app.height)
+            rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
             self.regions[name] = Region(name, self.desktop_img_dc, rect)
 
-        im = self.last_capture.crop(rect)
+        region = self.regions[name]
+        region.capture(self.mem_dc)
+        # region.img.show()
+        im = ImageOps.grayscale(region.img)
+        im = ImageOps.invert(im)
         enhancer = ImageEnhance.Brightness(im)
         im = enhancer.enhance(intensity)
-        if show == True:
-            im.show()
-        # text = pytesseract.image_to_string(im, config="--psm " + str(option) + " -c tessedit_char_whitelist=0123456789")
+        
         self.ocr_api.SetVariable('tessedit_char_whitelist', digits)
         self.ocr_api.SetVariable('tessedit_char_blacklist', ascii_letters)
         self.ocr_api.SetPageSegMode(PSM.SINGLE_WORD)
         self.ocr_api.SetImage(im)
-        text = self.ocr_api.GetUTF8Text().strip('\n')
-        return text
+        number = self.ocr_api.GetUTF8Text().strip('\n')
+        try:
+            number = int(number)
+        except:
+            number = -1
+        return int(number)
 
     def ocr_btn_txt(self):
         self.update_geometry()
@@ -291,17 +353,22 @@ class LoR_Handler:
         text = self.ocr_api.GetUTF8Text().strip('\n')
         return text.lower()
 
-    def detect(self, name):
+    def detect(self, name, src_rect = None):
         self.update_geometry()
         self.register_pattern(name)
         source = None
         if name in self.regions:
             source = self.regions[name]
         else:
-            source = self.Lor_app
+            if src_rect == None:
+                source = self.Lor_app
+            else:
+                src_rect = (src_rect[0] + self.Lor_app.left, src_rect[1] + self.Lor_app.top, src_rect[2], src_rect[3])
+                self.regions[name] = Region(name, self.desktop_img_dc, src_rect)
+                source = self.regions[name]
 
         rect = self.match_pattern(source, name)
-        if rect == None and name in self.regions:
+        if rect == None and name in self.regions and src_rect == None:
             rect = self.match_pattern(self.Lor_app, name)
         if rect != None and name not in self.regions:
             self.regions[name] = Region(name, self.desktop_img_dc, rect)
@@ -309,6 +376,7 @@ class LoR_Handler:
         pos = None
         if rect != None:
             pos = (rect[0] + int(rect[2]/2), rect[1] + int(rect[3]/2))
+        
         return pos
 
     def wait_for_btn(self, btn_text, click = True, sleep_duration = 1):

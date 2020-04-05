@@ -85,6 +85,8 @@ import LoR_Handler, LoR_Brain, LoR_Queries
 #         time.sleep(0.1)
 #     time.sleep(0.5)
 
+
+
 brain = LoR_Brain.Brain()
 
 def play(LoR, last_game_id):
@@ -93,22 +95,34 @@ def play(LoR, last_game_id):
     while game_id == last_game_id:
         btn = LoR.ocr_btn_txt()
         cards = LoR.get_board_cards()
+        status = LoR.get_status()
+        cards.print_all()
 
         print("***", btn, "***")
         if "round" in btn or "pass" in btn: #"END_ROUND" #PASS
             print("Need to play")
             status = LoR.get_status()
+            print(status.hp, status.opp_hp, status.mana, status.opp_mana, status.smana, status.opp_smana, status.atk_token, status.opp_atk_token)
             card = brain.choose_card_to_cast(cards, status)
             if card == None:
+                if status.atk_token == True:
+                    print("Choose attackers")
+                    attackers = brain.choose_attackers(cards, status)
+                    for attacker in attackers:
+                        print("Attack with", attacker["name"])
+                        LoR.drag_to_center(attacker)
                 LoR.click_next()
             else:
-                LoR.cast(card)
+                print("Casting >", card["name"])
+                LoR.drag_to_center(card)
                 
         elif "skip" in btn: # SKIP BLOCK
             print("Need to block")
             status = LoR.get_status()
-            blockers = brain.choose_blockers(cards, status)
-            LoR.block(blockers)
+            print(status.hp, status.opp_hp, status.mana, status.opp_mana, status.smana, status.opp_smana, status.atk_token, status.opp_atk_token)
+            blocks = brain.choose_blockers(cards, status)
+            for block in blocks:
+                LoR.drag_to_block(block)
             LoR.click_next()
 
         elif "select" in btn:
@@ -164,7 +178,7 @@ def loop(mode = "bot"):
     # print("Choosing next opponent >", mode)
     
     game_already_started = False
-    if LoR_Queries.is_game_in_progress == False:
+    if LoR_Queries.is_game_in_progress() == False:
         launch_match(LoR, mode)
         LoR.wait_for_selection_menu()
         LoR.wait_for_image(["Versus", "Ready"])
@@ -180,10 +194,11 @@ def loop(mode = "bot"):
         if game_already_started == False:
             LoR.wait_for_game_to_start() ## DEBUG
             mulligan(LoR)
+            LoR.set_face_cards()
         game_id, won = play(LoR, last_game_id)
 
         # # clean and restart
-        LoR.game_ended()
+        # LoR.game_ended() #Not necessary yet
         last_game_id = game_id
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
         game_count = game_count + 1
