@@ -4,6 +4,7 @@
       "description": "When you summon this, it gets its allegiance bonus if the top card of your deck matches its region.",
       "name": "Allegiance",
       "nameRef": "Allegiance"
+	  "Power": ["Summon", "Power-up"]
     },
     {
       "description": "Attacking with a support unit will buff the unit to its right.",
