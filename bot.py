@@ -2,7 +2,7 @@
 import time
 # import utils as Utils
 # import copy
-import LoR_Handler
+import LoR_Handler, LoR_Brain, LoR_Queries
 
 # def print_state(state):
 #     # if len(state["mulligan"]) > 0:
@@ -21,70 +21,6 @@ import LoR_Handler
 #     if len(state["cast"]) > 0: 
 #         print(" >> ".join(("<ME>" if x["LocalPlayer"] == True else "<OPP>") + x["name"] for x in cast))
 
-# def knapSack(W, wt, val, n, hand): 
-#     K = [[0 for w in range(W + 1)] 
-#             for i in range(n + 1)] 
-
-#     for i in range(n + 1): 
-#         for w in range(W + 1): 
-#             if i == 0 or w == 0: 
-#                 K[i][w] = 0
-#             elif wt[i - 1] <= w: 
-#                 K[i][w] = max(val[i - 1]  
-#                   + K[i - 1][w - wt[i - 1]], 
-#                                K[i - 1][w]) 
-#             else: 
-#                 K[i][w] = K[i - 1][w] 
-  
-#     # stores the result of Knapsack 
-#     res = K[n][W] 
-#     # print(res)   
-#     w = W 
-#     invokables = []
-#     for i in range(n, 0, -1): 
-#         if res <= 0: 
-#             break
-#         if res == K[i - 1][w]: 
-#             continue
-#         else: 
-#             # print(i, wt[i - 1])
-#             invokables.append(hand[i-1])
-#             res = res - val[i - 1] 
-#             w = w - wt[i - 1] 
-#     return invokables
-
-# def get_invocations(state):
-#     if len(state["board"]) >= 6:
-#         return None
-#     mana = int(state["mana"])
-#     wt = []
-#     val = []
-#     for card in state["hand"]:
-#         wt.append(card["cost"])
-#         value = card["cost"]
-#         if card["rarity"] == "Common": value = value * 8
-#         elif card["rarity"] == "Rare": value = value * 9
-#         elif card["rarity"] == "Epic": value = value * 10
-#         elif card["rarity"] == "Champion": value = value * 13
-#         val.append(value)
-#     # print(wt, val)
-#     invokables = knapSack(mana, wt, val, len(state["hand"]), state["hand"])
-#     # print( "INVOCATION > ", mana, ":", " - ".join(c["name"] for c in invokables))
-
-#     if len(invokables) == 0:
-#         return None
-#     return invokables[0]
-
-# def get_block(state):
-#     blk_atk = []
-#     attackers = state["opp_pit"]
-#     for blocker in state["board"]:
-#         for attacker in attackers:
-#             if attacker["health"] <= blocker["attack"]:
-#                 blk_atk.append((blocker, attacker))
-#                 attackers.remove(attacker)
-#                 break
-#     return blk_atk
 
 # def in_game_automata(LoR):
 #     state = LoR.get_state()
@@ -149,90 +85,117 @@ import LoR_Handler
 #         time.sleep(0.1)
 #     time.sleep(0.5)
 
-# def mulligan(LoR):
-#     Utils.wait_for_btn("ok")
-#     ## choose card to mulligan
-#     #cards = Brain.mulligan(state)
-#     #Utils.click_change(cards)
-#     LoR.next()
+brain = LoR_Brain.Brain()
 
-# def play(LoR, last_game_id):
-#     print("game in progress...", end="\r")
-#     game_id, won = LoR.get_last_game()
-#     while game_id == last_game_id: #game not finished
-#         state = LoR.get_state()
-    
-#         #check if game finished
-#         game_id, won = LoR.get_last_game()
-#     return game_id, won
+def play(LoR, last_game_id):
+    print("game in progress...", end="\r")
+    game_id, won = LoR_Queries.get_last_game()
+    while game_id == last_game_id:
+        btn = LoR.ocr_btn_txt()
+        cards = LoR.get_board_cards()
 
+        print("***", btn, "***")
+        if "round" in btn or "pass" in btn: #"END_ROUND" #PASS
+            print("Need to play")
+            status = LoR.get_status()
+            card = brain.choose_card_to_cast(cards, status)
+            if card == None:
+                LoR.click_next()
+            else:
+                LoR.cast(card)
+                
+        elif "skip" in btn: # SKIP BLOCK
+            print("Need to block")
+            status = LoR.get_status()
+            blockers = brain.choose_blockers(cards, status)
+            LoR.block(blockers)
+            LoR.click_next()
+
+        elif "select" in btn:
+            print("Need to select target")
+
+        elif "attack" in btn or "block" in btn: ## should not happens coz its a validation #BLOCK #ATTACK
+            print("Need to validate block or attack")
+            LoR.click_next()
+
+        elif "ok" in btn and len(cards.cast) > 0 and cards.cast[0]["LocalPlayer"] == True: ## own cast validation Should not happen
+            print("Need to validate cast")
+            LoR.click_next()
+
+        elif "ok" in btn and (len(cards.cast) == 0 or cards.cast[0]["LocalPlayer"] == True):
+            print("Need to validate invocation")
+            LoR.click_next()
+
+        elif "turn" in btn or "onent" in btn:
+            print("Opponent is playing")
+
+        elif "summon" in btn:
+            print("Summoning in progress")
+            
+        else:
+            print("Don't know what to do")
+        
+        time.sleep(3)
+        #check if game finished
+        game_id, won = LoR_Queries.get_last_game()
+    return game_id, won
+
+
+
+def mulligan(LoR):
+    cards = LoR_Queries.get_my_cards()
+    to_mulligan = brain.mulligan(cards)
+    LoR.click_mulligan(to_mulligan)
+    LoR.click_next()
 
 def launch_match(LoR, mode):
     print("Launching match vs", mode)
-    # try:
     if mode == "bot":
-        LoR.wait_and_click(["Play", "vsAI"], 5, 8)
+        LoR.wait_for_image(["Play", "vsAI"])
     elif mode == "challenger":
-        LoR.wait_and_click(["Friends", "Spare", "Challenge"], 2, 2)
+        LoR.wait_for_image(["Friends", "Spare", "Challenge"])
     elif mode == "challenged":
-        LoR.wait_and_click(["Accept"], 2, 2)
-    pass
-    # except:
-        # print("launch failed")
-        # return False
-    return True
+        LoR.wait_for_image(["Accept"])
 
-def rematch(LoR, mode):
-    LoR.exit()
-    loop(mode)
 
 def loop(mode = "bot"):
     LoR = LoR_Handler.launch()
-    print("Game hooked. Choosing next opponent >", mode)
-
-    if launch_match(LoR, mode) == False:
-        print("killing and restart")
-        # rematch(LoR, mode)
-        return
-
-    LoR.wait_for_selection_menu()
-
-    LoR.wait_and_click(["Versus", "Ready"])
+    print("Game hooked.")
+    # print("Choosing next opponent >", mode)
     
-    ## GAME SESSION
-    # game_session = True
-    # last_game_id, _ = LoR.get_last_game()
-    # game_count = 1
-    # while game_session == True:
-    #     mulligan(LoR)
-    #     game_id, won = play(LoR, last_game_id)
-    #     # clean and restart
-    #     last_game_id = game_id
-    #     print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
-    #     game_count = game_count + 1
-    #     LoR.clean()
-    #     time.sleep(4)
-    #     LoR.wait_and_click(["Continue", "Ready"])
+    game_already_started = False
+    if LoR_Queries.is_game_in_progress == False:
+        launch_match(LoR, mode)
+        LoR.wait_for_selection_menu()
+        LoR.wait_for_image(["Versus", "Ready"])
+    else:
+        game_already_started = True
+    
+    # GAME SESSION
+    game_session = True
+    last_game_id, _ = LoR_Queries.get_last_game()
+    game_count = 1
+    LoR.update_geometry() ## TODO REMOVE
+    while game_session == True:
+        if game_already_started == False:
+            LoR.wait_for_game_to_start() ## DEBUG
+            mulligan(LoR)
+        game_id, won = play(LoR, last_game_id)
+
+        # # clean and restart
+        LoR.game_ended()
+        last_game_id = game_id
+        print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
+        game_count = game_count + 1
+        time.sleep(4)
+        LoR.wait_for_image(["Continue", "Ready"])
 
 
 loop()
 
-
-# loop(bot = True)
-# LoR = Utils.LoR()
-# print("LoR connected")
-# state = LoR.get_state()
-# print_state(state)
-# time.sleep(2)
-# state = LoR.get_state()
-# print_state(state)
-# in_game_automata(LoR)
-
-# launch()
-# LoR = Utils.LoR()
-# LoR.capture(None, "vsAI")
-# LoR.capture((0,0,750,750))
-# LoR.capture((0,0,250,250), "capture")
+# def rematch(LoR, mode):
+#     LoR.exit()
+#     loop(mode)
 
 
 ## OUT OF GAME
