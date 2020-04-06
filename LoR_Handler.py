@@ -243,6 +243,7 @@ class LoR_Handler:
             y = self.Lor_app.height - card["TopLeftY"]
             if y < 0: 
                 allcards.opp_hand.append(card)
+                card["real_cost"] = self.ocr_number(card, "cost", "top")
             elif y < step: 
                 allcards.opp_board.append(card)
                 card["real_hp"] = self.ocr_number(card, "hp", "bot")

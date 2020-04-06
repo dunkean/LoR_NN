@@ -1,75 +1,155 @@
-from PIL import Image, ImageOps
+import itertools
+import numpy as np
+
+attackers = ["A","B","C","D", "E", "F"]
+blockers = ["a","b","c","d", "e", "f"]
+
+def generate_blk_permutations(atkrs, board):
+    board.extend(["N" for i in range(len(atkrs)+1)])
+    perm = list(itertools.permutations(board, len(atkrs)))
+    perm = list(dict.fromkeys(perm))
+    return perm
+
+def generate_atk_permutations(board, blkrs):
+    attackers_configs = []
+    for i in range(len(board) + 1):
+        comb = list(itertools.combinations(board,i))
+        attackers_configs.append(comb)
+        print("--- ATTACKERS COMBINATIONS --- of size >", i, "generated", len(comb))    
+    
+    blockers_configs = []
+    blkrs.extend(["N" for i in range(len(board) + 1)])
+    for i in range(len(board) + 1):
+        perm = list(itertools.permutations(blkrs,i))
+        perm = list(dict.fromkeys(perm))
+        blockers_configs.append(perm)
+        print("--- BLOCKERS PERMUTATIONS --- of size >", i, "generated", len(perm))
+
+    combinations = []
+    for i in range(len(board) + 1):
+        for atkrs in attackers_configs[i]:
+            for blkrs in blockers_configs[i]:
+                combinations.append((atkrs, blkrs))
+    
+    print("Total of possible fights", len(combinations))
+    return combinations
+
+# perm = generate_blk_permutations(attackers, blockers)
+# print(perm)
+# print(len(perm), "combinations")
+configs = generate_atk_permutations(attackers, blockers)
+print(configs)
 
 
-# def pixelProcRed(intensity):
-#     if(intensity > 250):    
-#         return 255
-#     return 0
+# attackers_configs = []
+# for i in range(len(attackers) + 1):
+#     comb = list(itertools.combinations(attackers,i))
+#     attackers_configs.append(comb)
+#     print("--- ATTACKERS COMBINATIONS --- of size >", i, "generated", len(comb))
+#     # print(comb)
 
-# def pixelProcBlue(intensity):
-#     # if(intensity > 250):
-#         # return 255
-#     return 0
+# for i in range(len(attackers) + 1):
+#     blockers.append("N")
+# blockers_configs = []
+# for i in range(len(attackers) + 1):
+#     perm = list(itertools.permutations(blockers,i))
+#     perm = list(dict.fromkeys(perm))
+#     blockers_configs.append(perm)
+#     print("--- BLOCKERS PERMUTATIONS --- of size >", i, "generated", len(perm))
+#     # print(perm)
 
-# def pixelProcGreen(intensity):
-#     if(intensity > 250):
-#         return 255
-#     return 0
+# all_possibilities = 0
+# for i in range(len(attackers) + 1):
+#     total = len(attackers_configs[i]) * len(blockers_configs[i])
+#     all_possibilities += total
+#     print("TOTAL combinations for", i, "attackers:", total)
+# print("maximum number of fights>", all_possibilities)
 
-# count = 0
-# def test_func(value):
-#     global count
-#     if count < 200 :
-#         print(value)
-#     count += 1
-#     return value
+# list2 = ["a","b","c","d", ""]
+# all_combinations = []
+# list1_permutations = itertools.permutations(list1, len(list2))
 
-im     = Image.open("./test.png")
-dat = im.getdata()
-f = []
-for d in dat:
-    if d[0] == 255 and d[1] == 255 and d[2] == 255: #chp catk
-        f.append((255,255,255))
-    elif d[0] <=2 and d[1] == 255 and d[2] <=2: #chp catk boost
-         f.append((255,255,255))
-    elif d[0] == 255 and d[1] <=2 and d[2] <=2: #chp catk malus
-         f.append((255,255,255))
-    elif d[0] <= 176 and d[0] >= 170 and d[1] <= 225 and d[1] >= 219 and d[2] >= 245: #smana
-         f.append((255,255,255))
-    elif d[0] <= 205 and d[0] >= 175 and d[1] <= 220 and d[1] >= 190 and d[2] <= 235 and d[2] >= 215: #mana
-         f.append((255,255,255))
-    elif d[0] == 245 and d[1] == 245 and d[2] == 250: #hp
-        f.append((255,255,255))
-    elif d[0] == 246 and d[1] == 227 and d[2] == 227: #hp
-        f.append((255,255,255))
-    else:
-        f.append((0,0,0))
-    # hp(245,245,250) (213,215,220)
-#chpatk(255,255,255) (1,255,0) (255,0,0)
-#180 194 218  203 211 234
-    # print(d)
-im.putdata(f)
-im = ImageOps.grayscale(im)
-im = ImageOps.invert(im)
-im.show()
-# threshold = 200  
-# # im = im.point(lambda p: p > threshold and 255) 
-# im = im.point(test_func)
-# im.show() 
+# for each_permutation in list1_permutations:
+#     zipped = zip(each_permutation, list2)
+#     all_combinations.append(list(zipped))
+
+# all_combinations = list(itertools.permutations([1, 2, 3]))
+# print(all_combinations)
+
+# all_combinations = [list(zip(each_permutation, list2)) for each_permutation in itertools.permutations(list1, len(list2))]
+
+# from PIL import Image, ImageOps
 
 
-# multiBands      = im.split()
-# multiBands[0].save("red.png")
-# multiBands[1].save("green.png")
-# multiBands[2].save("blue.png")
-# redBand      = multiBands[0].point(pixelProcRed)
-# greenBand    = multiBands[1].point(pixelProcGreen)
-# blueBand     = multiBands[2].point(pixelProcBlue)
-# redBand.show()
-# greenBand.show()
-# blueBand.show()
-# newImage = Image.merge("RGB", (redBand, greenBand, blueBand))
-# newImage.show()
+# # def pixelProcRed(intensity):
+# #     if(intensity > 250):    
+# #         return 255
+# #     return 0
+
+# # def pixelProcBlue(intensity):
+# #     # if(intensity > 250):
+# #         # return 255
+# #     return 0
+
+# # def pixelProcGreen(intensity):
+# #     if(intensity > 250):
+# #         return 255
+# #     return 0
+
+# # count = 0
+# # def test_func(value):
+# #     global count
+# #     if count < 200 :
+# #         print(value)
+# #     count += 1
+# #     return value
+
+# im     = Image.open("./test.png")
+# dat = im.getdata()
+# f = []
+# for d in dat:
+#     if d[0] == 255 and d[1] == 255 and d[2] == 255: #chp catk
+#         f.append((255,255,255))
+#     elif d[0] <=2 and d[1] == 255 and d[2] <=2: #chp catk boost
+#          f.append((255,255,255))
+#     elif d[0] == 255 and d[1] <=2 and d[2] <=2: #chp catk malus
+#          f.append((255,255,255))
+#     elif d[0] <= 176 and d[0] >= 170 and d[1] <= 225 and d[1] >= 219 and d[2] >= 245: #smana
+#          f.append((255,255,255))
+#     elif d[0] <= 205 and d[0] >= 175 and d[1] <= 220 and d[1] >= 190 and d[2] <= 235 and d[2] >= 215: #mana
+#          f.append((255,255,255))
+#     elif d[0] == 245 and d[1] == 245 and d[2] == 250: #hp
+#         f.append((255,255,255))
+#     elif d[0] == 246 and d[1] == 227 and d[2] == 227: #hp
+#         f.append((255,255,255))
+#     else:
+#         f.append((0,0,0))
+#     # hp(245,245,250) (213,215,220)
+# #chpatk(255,255,255) (1,255,0) (255,0,0)
+# #180 194 218  203 211 234
+#     # print(d)
+# im.putdata(f)
+# im = ImageOps.grayscale(im)
+# im = ImageOps.invert(im)
+# im.show()
+# # threshold = 200  
+# # # im = im.point(lambda p: p > threshold and 255) 
+# # im = im.point(test_func)
+# # im.show() 
+
+
+# # multiBands      = im.split()
+# # multiBands[0].save("red.png")
+# # multiBands[1].save("green.png")
+# # multiBands[2].save("blue.png")
+# # redBand      = multiBands[0].point(pixelProcRed)
+# # greenBand    = multiBands[1].point(pixelProcGreen)
+# # blueBand     = multiBands[2].point(pixelProcBlue)
+# # redBand.show()
+# # greenBand.show()
+# # blueBand.show()
+# # newImage = Image.merge("RGB", (redBand, greenBand, blueBand))
+# # newImage.show()
 
 # import win32gui, win32ui, win32con, win32api
 # from ctypes import windll

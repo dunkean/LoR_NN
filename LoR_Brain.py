@@ -1,6 +1,7 @@
 import json
 import random
 import logging
+import itertools
 
 class Brain:
     cards_dict = {}
@@ -129,3 +130,59 @@ class Brain:
         logging.info("-".join(c["name"] for c in attackers))
         
         return attackers
+
+    def hp(self, card):
+        if "real_hp" in card:
+            return card["real_hp"]
+        elif "health" in card:
+            return card["health"]
+        else:
+            return -1
+    
+    def atk(self, card):
+        if "real_atk" in card:
+            return card["real_atk"]
+        elif "attack" in card:
+            return card["attack"]
+        else:
+            return -1
+
+    def cost(self, card):
+        if "real_cost" in card:
+            return card["real_cost"]
+        elif "cost" in card:
+            return card["cost"]
+        else:
+            return -1
+
+    # def resolve_fight():
+
+    def generate_blk_permutations(self, atkrs, board):
+        board.extend(["N" for i in range(len(atkrs)+1)])
+        perm = list(itertools.permutations(board, len(atkrs)))
+        perm = list(dict.fromkeys(perm))
+        return perm
+
+    def generate_atk_permutations(self, board, blkrs):
+        attackers_configs = []
+        for i in range(len(board) + 1):
+            comb = list(itertools.combinations(board,i))
+            attackers_configs.append(comb)
+            print("--- ATTACKERS COMBINATIONS --- of size >", i, "generated", len(comb))    
+        
+        blockers_configs = []
+        blkrs.extend(["N" for i in range(len(board) + 1)])
+        for i in range(len(board) + 1):
+            perm = list(itertools.permutations(blkrs,i))
+            perm = list(dict.fromkeys(perm))
+            blockers_configs.append(perm)
+            print("--- BLOCKERS PERMUTATIONS --- of size >", i, "generated", len(perm))
+
+        combinations = []
+        for i in range(len(board) + 1):
+            for atkrs in attackers_configs[i]:
+                for blkrs in blockers_configs[i]:
+                    combinations.append((atkrs, blkrs))
+        
+        print("Total of possible fights", len(combinations))
+        return combinations
