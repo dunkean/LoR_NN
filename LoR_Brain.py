@@ -126,6 +126,6 @@ class Brain:
             if beaten == False:
                 attackers.append(attacker)
         logging.info("---Brain attack decision---")
-        logging.info("-".join(c[0]["name"] for c in attackers))
+        logging.info("-".join(c["name"] for c in attackers))
         
         return attackers

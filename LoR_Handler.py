@@ -85,12 +85,12 @@ class Cards:
 
     def to_string(self):
         str = ""
-        str += "HAND>" + "|".join((c["name"] for c in self.hand)) + "\\n"
-        str += "BOARD>" + "|".join((c["name"] for c in self.board)) + "\\n"
-        str += "PIT>" + "|".join((c["name"] for c in self.pit)) + "\\n"
-        str += "CAST>" + "|".join((c["name"] for c in self.cast)) + "\\n"
-        str += "OPP_PIT>" + "|".join((c["name"] for c in self.opp_pit)) + "\\n"
-        str += "OPP_BOARD>" + "|".join((c["name"] for c in self.opp_board)) + "\\n"
+        str += "HAND>" + "|".join((c["name"] for c in self.hand)) + "\n"
+        str += "BOARD>" + "|".join((c["name"] for c in self.board)) + "\n"
+        str += "PIT>" + "|".join((c["name"] for c in self.pit)) + "\n"
+        str += "CAST>" + "|".join((c["name"] for c in self.cast)) + "\n"
+        str += "OPP_PIT>" + "|".join((c["name"] for c in self.opp_pit)) + "\n"
+        str += "OPP_BOARD>" + "|".join((c["name"] for c in self.opp_board)) + "\n"
         return str
 
 class Status:
@@ -158,7 +158,7 @@ class LoR_Handler:
 
         current_LoR_rect = (wl + self.LoR_offset[0], wt + self.LoR_offset[1], cr - cl, cb - ct)
         if self.Lor_app.equals(current_LoR_rect) == False: #geometry changed
-            logging.info("Geometry changed > from", self.Lor_app.rect(), "to", current_LoR_rect)
+            logging.info("Geometry changed")
             self.patterns = {}
             self.regions = {}
             self.v_scale = current_LoR_rect[3] / 1080
@@ -258,15 +258,15 @@ class LoR_Handler:
 
     def click_next(self):
         pos = LoR_Constants.game_button_pos(self.face_card_rect, self.Lor_app.width, self.Lor_app.height)
-        logging.info("click next", global_pos)
         global_pos = self.posToGlobal(pos)
+        logging.info("click next %i:%i", global_pos[0], global_pos[1])
         pyautogui.moveTo(global_pos[0], global_pos[1], 0.1, pyautogui.easeInQuad)
         pyautogui.click()
 
     def click(self, pos = None):
         if pos != None:
             global_pos = self.posToGlobal(pos)
-            logging.info("click", global_pos)
+            logging.info("click %i:%i", global_pos[0], global_pos[1])
             # center_x, center_y = self.Lor_app.center()
             # pyautogui.moveTo(center_x, center_y, 1, pyautogui.easeInQuad)
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
@@ -276,7 +276,7 @@ class LoR_Handler:
         for card in cards:
             pos = LoR_Constants.mulligan_button_pos(card, self.Lor_app.height)
             global_pos = self.posToGlobal(pos)
-            logging.info("click mulligan", card["name"], global_pos)
+            logging.info("click mulligan %s %i:%i", card["name"], global_pos[0], global_pos[1])
             # center_x, center_y = self.Lor_app.center()
             # pyautogui.moveTo(center_x, center_y, 1, pyautogui.easeInQuad)
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
@@ -416,8 +416,9 @@ class LoR_Handler:
         pos = None
         if rect != None:
             pos = (rect[0] + int(rect[2]/2), rect[1] + int(rect[3]/2))
-        
-        logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
+            logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
+        else:
+            logging.info("%s not detected", name)
         return pos
 
     def wait_for_btn(self, btn_text, click = True, sleep_duration = 1):
