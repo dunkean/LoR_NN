@@ -1,5 +1,6 @@
 import json
 import random
+import logging
 
 class Brain:
     cards_dict = {}
@@ -13,17 +14,19 @@ class Brain:
                 self.cards_dict[p["cardCode"]] = p
     
     def complete(self, cards):
+        logging.info("Adding db info to cards")
         for card in cards:
             card.update(self.cards_dict[card["CardCode"]])
 
     def mulligan(self, cards):
+        logging.info("Computing mulligan")
         to_mulligan = []
         self.complete(cards)
-        # #print(" - ".join(c["name"] for c in cards))
         for card in cards:
             if card["cost"] > 3:
                 to_mulligan.append(card)
-        # #print(" - ".join(c["name"] for c in to_mulligan))
+        logging.info("---Brain mulligan decision---")
+        logging.info("-".join(c["name"] for c in to_mulligan))
         return to_mulligan
 
 
@@ -60,9 +63,12 @@ class Brain:
         return invokables
 
     def choose_card_to_cast(self, cards, status):
+        logging.info("Brain is computing cast")
         #print(cards.board)
         if len(cards.board) >= 6: ## TODO replace by cast only spells
+            logging.info("Board is full")
             return None
+
         self.complete(cards.hand)
         wt = []
         val = []
@@ -80,13 +86,14 @@ class Brain:
 
         max_cards_cast = int(min( 6 - len(cards.board), len(cards.hand) ))
         invokables = self.knapSack(status.mana, wt, val, max_cards_cast, cards.hand)
-        #print("---Brain decision---")
-        #print("-".join(c["name"] for c in invokables))
+        logging.info("---Brain cast decision---")
+        logging.info("-".join(c["name"] for c in invokables))
         if len(invokables) == 0:
             return None
         return invokables[0]
 
     def choose_blockers(self, cards, status):
+        logging.info("Brain is computing blockers")
         blk_atk = []
         self.complete(cards.opp_pit)
         attackers = cards.opp_pit
@@ -99,9 +106,12 @@ class Brain:
                     blk_atk.append((blocker, attacker))
                     attackers.remove(attacker)
                     break
+        logging.info("---Brain block decision---")
+        logging.info("-".join(c[0]["name"] + "|" + c[1]["name"] for c in blk_atk))
         return blk_atk
 
     def choose_attackers(self, cards, status):
+        logging.info("Brain is computing attackers")
         attackers = []
         self.complete(cards.opp_board)
         self.complete(cards.board)
@@ -115,5 +125,7 @@ class Brain:
 
             if beaten == False:
                 attackers.append(attacker)
-
+        logging.info("---Brain attack decision---")
+        logging.info("-".join(c[0]["name"] for c in attackers))
+        
         return attackers

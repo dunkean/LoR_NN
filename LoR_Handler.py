@@ -83,13 +83,15 @@ class Cards:
         self.opp_pit = []
         self.opp_board = []
 
-    def print_all(self):
-        print("HAND>", "|".join((c["name"] for c in self.hand)))
-        print("BOARD>", "|".join((c["name"] for c in self.board)))
-        print("PIT>", "|".join((c["name"] for c in self.pit)))
-        print("CAST>", "|".join((c["name"] for c in self.cast)))
-        print("OPP_PIT>", "|".join((c["name"] for c in self.opp_pit)))
-        print("OPP_BOARD>", "|".join((c["name"] for c in self.opp_board)))
+    def to_string(self):
+        str = ""
+        str += "HAND>" + "|".join((c["name"] for c in self.hand)) + "\\n"
+        str += "BOARD>" + "|".join((c["name"] for c in self.board)) + "\\n"
+        str += "PIT>" + "|".join((c["name"] for c in self.pit)) + "\\n"
+        str += "CAST>" + "|".join((c["name"] for c in self.cast)) + "\\n"
+        str += "OPP_PIT>" + "|".join((c["name"] for c in self.opp_pit)) + "\\n"
+        str += "OPP_BOARD>" + "|".join((c["name"] for c in self.opp_board)) + "\\n"
+        return str
 
 class Status:
     hp = 0
@@ -100,6 +102,21 @@ class Status:
     opp_smana = 0
     atk_token = False
     opp_atk_token = False
+
+    def __init__(self):
+        hp = -1
+        mana = -1
+        smana = -1
+        opp_hp = -1
+        opp_mana = -1
+        opp_smana = -1
+        atk_token = False
+        opp_atk_token = False
+        
+    def to_string(self):
+        return "hp:%s, mana:%s, smama:%s, token:%i | hp:%s, mana:%s, smana:%s, token:%i" %\
+                (self.hp, self.mana, self.smana, self.atk_token, \
+                self.opp_hp, self.opp_smana, self.opp_mana, self.opp_atk_token)
 
 class LoR_Handler:
     Lor_app = None
@@ -141,6 +158,7 @@ class LoR_Handler:
 
         current_LoR_rect = (wl + self.LoR_offset[0], wt + self.LoR_offset[1], cr - cl, cb - ct)
         if self.Lor_app.equals(current_LoR_rect) == False: #geometry changed
+            logging.info("Geometry changed > from", self.Lor_app.rect(), "to", current_LoR_rect)
             self.patterns = {}
             self.regions = {}
             self.v_scale = current_LoR_rect[3] / 1080
@@ -150,7 +168,9 @@ class LoR_Handler:
         ## MANAGE RECTS FOR OCR
 
     def set_face_cards(self, cards = None):
+        logging.info("updating face cards")
         if cards == None:
+            logging.info("no cards provided")
             cards = queries.cards()
 
         if cards == None:
@@ -183,9 +203,11 @@ class LoR_Handler:
         status.opp_atk_token = ( self.detect("opp_atk_token"
                                 , LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
                                             , self.Lor_app.width, self.Lor_app.height)) != None)
+        logging.info("OCR status: %s",)
         return status
 
     def get_board_cards(self):
+        logging.info("Computing card repartition on board")
         self.update_geometry()
         playable_cards = queries.get_playable_cards()
         brain.complete(playable_cards)
@@ -202,13 +224,16 @@ class LoR_Handler:
             elif y < 5*step: allcards.board.append(card)
             else: allcards.hand.append(card)
         
+        logging.info(allcards.to_string())
         return allcards
 
     def wait_for_selection_menu(self, sleep_duration = 1): ## generic query
+        logging.info("Wait for deck selection menu.")
         while(queries.board()["GameState"] != "Menus"):
             time.sleep(self.duration(sleep_duration))
 
     def wait_for_game_to_start(self, sleep_duration = 1): ## generic query
+        logging.info("Waiting for game to start...")
         cards = []
         while( len(cards) == 0):
             cards = queries.cards()
@@ -233,6 +258,7 @@ class LoR_Handler:
 
     def click_next(self):
         pos = LoR_Constants.game_button_pos(self.face_card_rect, self.Lor_app.width, self.Lor_app.height)
+        logging.info("click next", global_pos)
         global_pos = self.posToGlobal(pos)
         pyautogui.moveTo(global_pos[0], global_pos[1], 0.1, pyautogui.easeInQuad)
         pyautogui.click()
@@ -240,6 +266,7 @@ class LoR_Handler:
     def click(self, pos = None):
         if pos != None:
             global_pos = self.posToGlobal(pos)
+            logging.info("click", global_pos)
             # center_x, center_y = self.Lor_app.center()
             # pyautogui.moveTo(center_x, center_y, 1, pyautogui.easeInQuad)
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
@@ -249,12 +276,14 @@ class LoR_Handler:
         for card in cards:
             pos = LoR_Constants.mulligan_button_pos(card, self.Lor_app.height)
             global_pos = self.posToGlobal(pos)
+            logging.info("click mulligan", card["name"], global_pos)
             # center_x, center_y = self.Lor_app.center()
             # pyautogui.moveTo(center_x, center_y, 1, pyautogui.easeInQuad)
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
             pyautogui.click()
 
     def drag_to_center(self, card):
+        logging.info("Drag %s to center", card["name"])
         x, y = self.card_handle_pos(card)
         center_x, center_y = self.Lor_app.center()
         # pyautogui.moveTo(center_x, center_y, 0.2, pyautogui.easeInQuad)
@@ -263,6 +292,7 @@ class LoR_Handler:
         pyautogui.dragTo(center_x, center_y, 0.2)
     
     def drag_to_block(self, block):
+        logging.info("Drag %s to %s", block[0]["name"], block[1]["name"])
         x, y = self.card_handle_pos(block[0])
         destx, desty = self.card_handle_pos(block[1])
         center_x, center_y = self.Lor_app.center()
@@ -282,9 +312,11 @@ class LoR_Handler:
         res = cv2.matchTemplate(cv_im, pattern_cv_img, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(res)
         if (max_val > 0.8):
+            logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
             return (max_loc[0], max_loc[1], width, height)
 
         pattern_cv_img = self.source_patterns[name]
+        logging.info("Attempting scaling for detection")
         for i in range(-5, 5, 1):
             scale = i/100 + self.v_scale
             width = int(pattern_cv_img.shape[1] * scale)
@@ -293,16 +325,19 @@ class LoR_Handler:
             res = cv2.matchTemplate(cv_im, pattern_scaled, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(res)
             if (max_val > 0.8):
+                logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
                 return (max_loc[0], max_loc[1], width, height)
         return None
 
     def register_pattern(self, name):
         if name not in self.source_patterns:
+            logging.info("Adding pattern %s in sources", name)
             pattern_img = Image.open(name + ".png")
             pattern_cv_img = np.array(pattern_img.convert('L'))
             self.source_patterns[name] = pattern_cv_img
 
         if name not in self.patterns:
+            logging.info("Adding pattern %s in patterns", name)
             pattern_cv_img = self.source_patterns[name]
             width = int(pattern_cv_img.shape[1] * self.v_scale)
             height = int(pattern_cv_img.shape[0] * self.v_scale)
@@ -324,7 +359,6 @@ class LoR_Handler:
         im = enhancer.enhance(intensity)
         # if name == "mana" or name == "opp_mana" or name == "smana":
         #     im.show()
-        
         self.ocr_api.SetVariable('tessedit_char_whitelist', digits)
         self.ocr_api.SetVariable('tessedit_char_blacklist', ascii_letters)
         self.ocr_api.SetPageSegMode(PSM.SINGLE_WORD)
@@ -334,13 +368,13 @@ class LoR_Handler:
             number = int(number)
         except:
             number = -1
-        # if name == "mana":
-        #     print(number)
+        logging.info("OCR number %i >", number)
         return int(number)
 
     def ocr_btn_txt(self):
         self.update_geometry()
         if "game_buton" not in self.regions:
+            logging.info("Creating region for button text")
             btn_rect = LoR_Constants.game_button_rect(self.face_card_rect, self.Lor_app.width, self.Lor_app.height)
             btn_rect = (btn_rect[0] + self.Lor_app.left, btn_rect[1] + self.Lor_app.top, btn_rect[2], btn_rect[3])
             self.regions["game_buton"] = Region("game_buton", self.desktop_img_dc, btn_rect)
@@ -356,6 +390,7 @@ class LoR_Handler:
         self.ocr_api.SetVariable('tessedit_char_blacklist', digits)
         self.ocr_api.SetImage(im)
         text = self.ocr_api.GetUTF8Text().strip('\n')
+        logging.info("Btn text detected as %s", text)
         return text.lower()
 
     def detect(self, name, src_rect = None):
@@ -382,31 +417,37 @@ class LoR_Handler:
         if rect != None:
             pos = (rect[0] + int(rect[2]/2), rect[1] + int(rect[3]/2))
         
+        logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
         return pos
 
     def wait_for_btn(self, btn_text, click = True, sleep_duration = 1):
         ocr = ""
         while ocr != btn_text:
+            logging.info("Wainting for btn %s", btn_text)
             ocr = self.ocr_btn_txt()
             time.sleep(self.duration(sleep_duration))
 
 
     def wait_for_image(self, btn_names, click = True, sleep_duration = 1):
+        logging.info("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
         index = 0
         last_detected_pos = None
         while index < len(btn_names):
             name = btn_names[0]
-            #print("Searching for", name)
+            logging.info("Searching for %s", name)
             detected_pos = self.detect(name)
 
             if click == True:
                 if detected_pos == None:
+                    logging.info("%s not detected", name)
                     if last_detected_pos == None:
+                        logging.info("clicking screen dumbly")
                         self.click()
                     else:
+                        logging.info("clicking last detected position")
                         self.click(last_detected_pos)
                 else:
-                    #print("Clicking", name)
+                    logging.info("Clicking %s", name)
                     btn_names.pop(0)
                     last_detected_pos = detected_pos
                     self.click(detected_pos)
