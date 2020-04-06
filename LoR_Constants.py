@@ -16,6 +16,25 @@ def game_button_rect(face_card, app_width, app_height):
     h = int(0.7 * face_card[3])
     return (x,y,w,h)
 
+def card_prop_rect(card, prop, pos, app_width, app_height):
+    l = card["TopLeftX"]
+    t = app_height - card["TopLeftY"]
+    w = card["Width"]
+    h = card["Height"]
+    b = t + h
+
+    if prop == "hp":
+        if pos == "bot":
+            return (l+int(w/2+h/20) , b-int(h/4) , int(h/4) , int(6.5*h/30))
+        else:
+            return (l+int(w/2+h/20) ,  t+int(h/20) , int(h/4) , int(h/5))
+    else:
+        if pos == "bot":
+            return (l+int(w/2-h/4) , b-int(h/4) , int(h/4) , int(6.5*h/30))
+        else:
+            return (l+int(w/2-h/4) , t+int(h/20) , int(h/4) , int(h/5))
+
+
 def status_number_rect(name, opp_face_card, face_card, app_width, app_height):
     if name == "hp":
         return hp_rect(face_card, app_width, app_height)

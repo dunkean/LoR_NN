@@ -52,6 +52,8 @@ class Region:
         return False
 
     def capture(self, mem_dc):
+        if self.width <= 0 or self.height <= 0:
+            return
         mem_dc.SelectObject(self.bitmap) 
         mem_dc.BitBlt(  (0, 0),  (self.width, self.height), 
                         self.desktop_img_dc, (self.left, self.top), 
@@ -83,14 +85,30 @@ class Cards:
         self.opp_pit = []
         self.opp_board = []
 
+    def card_to_string(self, c):
+        s = ""
+        if "cost" in c: s = s + "(" + str(c["cost"]) + ")"
+        s = s + c["name"] + ":"
+        if "real_atk" in c: s = s + str(c["real_atk"]) + "/"
+        if "attack" in c: s = s + str(c["attack"]) + "|"
+        if "real_hp" in c: s = s + str(c["real_hp"]) + "/"
+        if "health" in c: s = s + str(c["health"])
+        return s
+
     def to_string(self):
         str = ""
-        str += "HAND>" + "|".join((c["name"] for c in self.hand)) + "\n"
-        str += "BOARD>" + "|".join((c["name"] for c in self.board)) + "\n"
-        str += "PIT>" + "|".join((c["name"] for c in self.pit)) + "\n"
-        str += "CAST>" + "|".join((c["name"] for c in self.cast)) + "\n"
-        str += "OPP_PIT>" + "|".join((c["name"] for c in self.opp_pit)) + "\n"
-        str += "OPP_BOARD>" + "|".join((c["name"] for c in self.opp_board)) + "\n"
+        if len(self.hand) > 0:
+            str += "HAND> " + " | ".join(( self.card_to_string(c)  for c in self.hand)) + "\n"
+        if len(self.board) > 0:
+            str += "BOARD> " + " | ".join((self.card_to_string(c) for c in self.board)) + "\n"
+        if len(self.pit) > 0:
+            str += "PIT> " + " | ".join((self.card_to_string(c) for c in self.pit)) + "\n"
+        if len(self.cast) > 0:
+            str += "CAST> " + " | ".join((self.card_to_string(c) for c in self.cast)) + "\n"
+        if len(self.opp_pit) > 0:
+            str += "OPP_PIT> " + " | ".join((self.card_to_string(c) for c in self.opp_pit)) + "\n"
+        if len(self.opp_board) > 0:
+            str += "OPP_BOARD> " + " | ".join((self.card_to_string(c) for c in self.opp_board)) + "\n"
         return str
 
 class Status:
@@ -189,12 +207,12 @@ class LoR_Handler:
     def get_status(self):
         self.update_geometry()
         status = Status()
-        status.hp = self.ocr_number("hp", 6)
-        status.opp_hp = self.ocr_number("opp_hp", 6)
-        status.mana = self.ocr_number("mana", 1)
-        status.opp_mana = self.ocr_number("opp_mana", 1)
-        status.smana = self.ocr_number("smana", 2)
-        status.opp_smana = self.ocr_number("opp_smana", 2)
+        status.hp = self.ocr_number("hp")
+        status.opp_hp = self.ocr_number("opp_hp")
+        status.mana = self.ocr_number("mana")
+        status.opp_mana = self.ocr_number("opp_mana")
+        status.smana = self.ocr_number("smana")
+        status.opp_smana = self.ocr_number("opp_smana")
         if self.detect("atk_token", LoR_Constants.atk_token_rect(self.face_card_rect
                                             , self.Lor_app.width, self.Lor_app.height)) != None:
             status.atk_token = True
@@ -208,9 +226,10 @@ class LoR_Handler:
             status.opp_atk_token = False
         
         logging.info("OCR status: %s", status.to_string())
-        print(status.to_string())
+        # print(status.to_string())
 
         return status
+
 
     def get_board_cards(self):
         logging.info("Computing card repartition on board")
@@ -222,15 +241,31 @@ class LoR_Handler:
 
         for card in playable_cards:
             y = self.Lor_app.height - card["TopLeftY"]
-            if y < 0: allcards.opp_hand.append(card)
-            elif y < step: allcards.opp_board.append(card)
-            elif y < 2*step: allcards.opp_pit.append(card)
-            elif y < 3*step: allcards.cast.append(card)
-            elif y < 4*step: allcards.pit.append(card)
-            elif y < 5*step: allcards.board.append(card)
-            else: allcards.hand.append(card)
+            if y < 0: 
+                allcards.opp_hand.append(card)
+            elif y < step: 
+                allcards.opp_board.append(card)
+                card["real_hp"] = self.ocr_number(card, "hp", "bot")
+                card["real_atk"] = self.ocr_number(card, "atk", "bot")
+            elif y < 2*step: 
+                allcards.opp_pit.append(card)
+                card["real_hp"] = self.ocr_number(card, "hp", "bot")
+                card["real_atk"] = self.ocr_number(card, "atk", "bot")
+            elif y < 3*step: 
+                allcards.cast.append(card)
+            elif y < 4*step: 
+                allcards.pit.append(card)
+                card["real_hp"] = self.ocr_number(card, "hp", "top")
+                card["real_atk"] = self.ocr_number(card, "atk", "top")
+            elif y < 5*step: 
+                allcards.board.append(card)
+                card["real_hp"] = self.ocr_number(card, "hp", "top")
+                card["real_atk"] = self.ocr_number(card, "atk", "top")
+            else: 
+                allcards.hand.append(card)
         
         logging.info(allcards.to_string())
+        print(allcards.to_string())
         return allcards
 
     def wait_for_selection_menu(self, sleep_duration = 1): ## generic query
@@ -375,13 +410,20 @@ class LoR_Handler:
         im = ImageOps.invert(im)
         return im
 
-    def ocr_number(self, name, intensity):
-        if name not in self.regions and name != "":
+    def ocr_number(self, name, prop = "", pos = ""):       
+        region = None
+        if prop != "":
+            rect = LoR_Constants.card_prop_rect(name, prop, pos, self.Lor_app.width, self.Lor_app.height)
+            rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
+            region = Region(name, self.desktop_img_dc, rect)
+        elif name not in self.regions and name != "":
             rect = LoR_Constants.status_number_rect(name, self.face_card_rect, self.opp_face_card_rect, self.Lor_app.width, self.Lor_app.height)
             rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
             self.regions[name] = Region(name, self.desktop_img_dc, rect)
+            region = self.regions[name]
+        else:
+            region = self.regions[name]
 
-        region = self.regions[name]
         region.capture(self.mem_dc)
         im = self.ocr_filter_img(region.img)
         self.ocr_api.SetVariable('tessedit_char_whitelist', digits)
@@ -392,7 +434,7 @@ class LoR_Handler:
         try:
             number = int(number)
         except:
-            number = -1
+            number = -99
         logging.info("OCR number %i >", number)
         return int(number)
 
