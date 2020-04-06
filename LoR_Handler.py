@@ -53,6 +53,7 @@ class Region:
 
     def capture(self, mem_dc):
         if self.width <= 0 or self.height <= 0:
+            print("PROBLEM WITH REGION", self.name)
             return
         mem_dc.SelectObject(self.bitmap) 
         mem_dc.BitBlt(  (0, 0),  (self.width, self.height), 
@@ -226,7 +227,7 @@ class LoR_Handler:
             status.opp_atk_token = False
         
         logging.info("OCR status: %s", status.to_string())
-        # print(status.to_string())
+        print(status.to_string())
 
         return status
 
@@ -243,7 +244,7 @@ class LoR_Handler:
             y = self.Lor_app.height - card["TopLeftY"]
             if y < 0: 
                 allcards.opp_hand.append(card)
-                card["real_cost"] = self.ocr_number(card, "cost", "top")
+                # card["real_cost"] = self.ocr_number(card, "cost", "top")
             elif y < step: 
                 allcards.opp_board.append(card)
                 card["real_hp"] = self.ocr_number(card, "hp", "bot")
@@ -256,8 +257,9 @@ class LoR_Handler:
                 allcards.cast.append(card)
             elif y < 4*step: 
                 allcards.pit.append(card)
-                card["real_hp"] = self.ocr_number(card, "hp", "top")
-                card["real_atk"] = self.ocr_number(card, "atk", "top")
+                if card["type"] == "Unit":
+                    card["real_hp"] = self.ocr_number(card, "hp", "top")
+                    card["real_atk"] = self.ocr_number(card, "atk", "top")
             elif y < 5*step: 
                 allcards.board.append(card)
                 card["real_hp"] = self.ocr_number(card, "hp", "top")
@@ -387,6 +389,8 @@ class LoR_Handler:
 
 
     def ocr_filter_img(self, im):
+        if im == None:
+            return im
         dat = im.getdata()
         f = []
         for d in dat:
@@ -426,6 +430,8 @@ class LoR_Handler:
             region = self.regions[name]
 
         region.capture(self.mem_dc)
+        if region.img == None:
+            return -1
         im = self.ocr_filter_img(region.img)
         self.ocr_api.SetVariable('tessedit_char_whitelist', digits)
         self.ocr_api.SetVariable('tessedit_char_blacklist', ascii_letters)
@@ -495,10 +501,11 @@ class LoR_Handler:
             time.sleep(self.duration(sleep_duration))
 
 
-    def wait_for_image(self, btn_names, click = True, sleep_duration = 1):
+    def wait_for_image(self, btn_names, click = True, sleep_duration = 3):
         logging.info("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
         index = 0
         last_detected_pos = None
+        tries = 0
         while index < len(btn_names):
             name = btn_names[0]
             logging.info("Searching for %s", name)
@@ -506,13 +513,16 @@ class LoR_Handler:
 
             if click == True:
                 if detected_pos == None:
-                    logging.info("%s not detected", name)
-                    if last_detected_pos == None:
-                        logging.info("clicking screen dumbly")
-                        self.click()
-                    else:
-                        logging.info("clicking last detected position")
-                        self.click(last_detected_pos)
+                    tries += 1
+                    if tries > 3:
+                        tries == 0
+                        logging.info("%s not detected", name)
+                        if last_detected_pos == None:
+                            logging.info("clicking screen dumbly")
+                            self.click()
+                        else:
+                            logging.info("clicking last detected position")
+                            self.click(last_detected_pos)
                 else:
                     logging.info("Clicking %s", name)
                     btn_names.pop(0)
@@ -525,6 +535,9 @@ class LoR_Handler:
     def exit(self):
         logging.info("Closing LoR Window...")
         win32gui.PostMessage(LoR_h.LoR_hwnd,win32con.WM_CLOSE,0,0)
+
+
+
         while win32gui.FindWindow(None, 'Legends of Runeterra') != 0:
             logging.info("Waiting for LoR window handler == None")
             #print("waiting for LoR to be down...")

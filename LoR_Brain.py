@@ -74,15 +74,19 @@ class Brain:
         wt = []
         val = []
         for card in cards.hand:
-            wt.append(card["cost"])
+            cost = card["cost"]
+            if card["type"] == "Spell":
+                cost = cost - status.smana
+            wt.append(cost)
+            
             value = card["cost"]
             if card["rarity"] == "Common": value = value * 8
             elif card["rarity"] == "Rare": value = value * 9
-            elif card["rarity"] == "Epic": value = value * 10
+            elif card["rarity"] == "Epic": value = value * 11
             elif card["rarity"] == "Champion": value = value * 13
 
             if card["type"] == "Unit": value = value * 5
-            else: value = value * 4
+            else: value = value * 3
             val.append(value)
 
         max_cards_cast = int(min( 6 - len(cards.board), len(cards.hand) ))
@@ -103,7 +107,8 @@ class Brain:
         random.shuffle(cards.board)
         for blocker in cards.board:
             for attacker in cards.opp_pit:
-                if attacker["health"] <= blocker["attack"] and (len(cards.board) > 2 or status.hp <= 10 or blocker["health"] > attacker["attack"]):
+                if self.hp(attacker) <= self.atk(blocker) and (len(cards.board) > 2 or status.hp <= 10 or self.hp(blocker) > self.atk(attacker)):
+                # if attacker["health"] <= blocker["attack"] and (len(cards.board) > 2 or status.hp <= 10 or blocker["health"] > attacker["attack"]):
                     blk_atk.append((blocker, attacker))
                     attackers.remove(attacker)
                     break
@@ -121,7 +126,7 @@ class Brain:
         for attacker in cards.board:
             beaten = False
             for blocker in cards.opp_board:
-                if attacker["health"] <= blocker["attack"] and attacker["attack"] < blocker["health"]:
+                if self.hp(attacker) <= self.atk(blocker) and self.atk(attacker) < self.hp(blocker):
                     beaten = True
 
             if beaten == False:
@@ -132,7 +137,7 @@ class Brain:
         return attackers
 
     def hp(self, card):
-        if "real_hp" in card:
+        if "real_hp" in card and card["real_hp"] != -99:
             return card["real_hp"]
         elif "health" in card:
             return card["health"]
@@ -140,7 +145,7 @@ class Brain:
             return -1
     
     def atk(self, card):
-        if "real_atk" in card:
+        if "real_atk" in card and card["real_atk"] != -99:
             return card["real_atk"]
         elif "attack" in card:
             return card["attack"]

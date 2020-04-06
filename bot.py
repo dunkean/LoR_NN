@@ -16,70 +16,70 @@ def play(LoR, last_game_id):
         status = LoR.get_status()
         logging.info("Status: %s", status.to_string())
 
-        # if last_btn == btn:
-        #     last_btn_repeat = last_btn_repeat + 1
-        # else:
-        #     last_btn_repeat = 0
-        #     last_btn = btn
+        if last_btn == btn:
+            last_btn_repeat = last_btn_repeat + 1
+        else:
+            last_btn_repeat = 0
+            last_btn = btn
 
-        # if last_btn_repeat > 10:
-        #     logging.warning("btn value is the same for 10 times: %s, click next", last_btn)
-        #     LoR.click_next()
-        #     continue
+        if last_btn_repeat > 10:
+            logging.warning("btn value is the same for 10 times: %s, click next", last_btn)
+            LoR.click_next()
+            continue
 
-        # #print("***", btn, "***")
-        # if "round" in btn or "pass" in btn: #"END_ROUND" #PASS
-        #     logging.info("Player's turn")
+        #print("***", btn, "***")
+        if "round" in btn or "pass" in btn: #"END_ROUND" #PASS
+            logging.info("Player's turn")
             
             
-        #     card = brain.choose_card_to_cast(cards, status)
-        #     if card == None:
-        #         logging.info("No card to cast")
-        #         if status.atk_token == True:
-        #             attackers = brain.choose_attackers(cards, status)
-        #             for attacker in attackers:
-        #                 logging.info("Attack with %s", attacker["name"])
-        #                 LoR.drag_to_center(attacker)
-        #                 time.sleep(0.5)
-        #         LoR.click_next()
-        #     else:
-        #         logging.info("Casting > %s", card["name"])
-        #         LoR.drag_to_center(card)
+            card = brain.choose_card_to_cast(cards, status)
+            if card == None:
+                logging.info("No card to cast")
+                if status.atk_token == True:
+                    attackers = brain.choose_attackers(cards, status)
+                    for attacker in attackers:
+                        logging.info("Attack with %s", attacker["name"])
+                        LoR.drag_to_center(attacker)
+                        time.sleep(0.5)
+                LoR.click_next()
+            else:
+                logging.info("Casting > %s", card["name"])
+                LoR.drag_to_center(card)
                 
-        # elif "skip" in btn: # SKIP BLOCK
-        #     logging.info("Blocking action")
-        #     # status = LoR.get_status()
-        #     # logging.info("Status: %s", status.to_string())
-        #     blocks = brain.choose_blockers(cards, status)
-        #     for block in blocks:
-        #         logging.info("Blocking %s with %s", block[0]["name"], block[1]["name"])
-        #         LoR.drag_to_block(block)
-        #         time.sleep(0.5)
-        #     LoR.click_next()
+        elif "skip" in btn: # SKIP BLOCK
+            logging.info("Blocking action")
+            # status = LoR.get_status()
+            # logging.info("Status: %s", status.to_string())
+            blocks = brain.choose_blockers(cards, status)
+            for block in blocks:
+                logging.info("Blocking %s with %s", block[0]["name"], block[1]["name"])
+                LoR.drag_to_block(block)
+                time.sleep(0.5)
+            LoR.click_next()
 
-        # elif "select" in btn:
-        #     logging.info("pass - but need to select target")
-        #     pass
+        elif "select" in btn:
+            logging.info("pass - but need to select target")
+            pass
 
-        # elif "attack" in btn or "block" in btn: ## should not happens coz its a validation #BLOCK #ATTACK
-        #     logging.info("validate block or attack")
-        #     LoR.click_next()
+        elif "attack" in btn or "block" in btn: ## should not happens coz its a validation #BLOCK #ATTACK
+            logging.info("validate block or attack")
+            LoR.click_next()
 
-        # elif "ok" in btn and len(cards.cast) > 0 and cards.cast[0]["LocalPlayer"] == True: ## own cast validation Should not happen
-        #     logging.info("validate cast")
-        #     LoR.click_next()
+        elif "ok" in btn and len(cards.cast) > 0 and cards.cast[0]["LocalPlayer"] == True: ## own cast validation Should not happen
+            logging.info("validate cast")
+            LoR.click_next()
 
-        # elif "ok" in btn and (len(cards.cast) == 0 or cards.cast[0]["LocalPlayer"] == True):
-        #     logging.info("validate invocation")
-        #     LoR.click_next()
+        elif "ok" in btn and (len(cards.cast) == 0 or cards.cast[0]["LocalPlayer"] == True):
+            logging.info("validate invocation")
+            LoR.click_next()
 
-        # elif "turn" in btn or "onent" in btn or "pone" in btn:
-        #     logging.info("opponent turn")
+        elif "turn" in btn or "onent" in btn or "pone" in btn:
+            logging.info("opponent turn")
 
-        # elif "summon" in btn:
-        #     logging.info("summoning in progress")
-        # else:
-        #     logging.info("waiting to have more info")
+        elif "summon" in btn:
+            logging.info("summoning in progress")
+        else:
+            logging.info("waiting to have more info")
         
         time.sleep(2)
         #check if game finished
@@ -126,9 +126,9 @@ def loop(mode = "bot"):
     game_count = 1
     LoR.update_geometry() ## TODO REMOVE
     while game_session == True:
-        if game_count % 10 == 0:
-            logging.info("--- Making a short break after 10 games")
-            time.sleep(int(random.random() * 60))
+        # if game_count % 10 == 0:
+        #     logging.info("--- Making a short break after 10 games")
+        #     time.sleep(int(random.random() * 60))
 
         if game_already_started == False:
             logging.info("Game not started, waiting screen to mulligan")
@@ -144,7 +144,7 @@ def loop(mode = "bot"):
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
         game_count = game_count + 1
         game_already_started = False
-        time.sleep(4)
+        time.sleep(10)
         LoR.wait_for_image(["Continue", "Ready"])
 
 

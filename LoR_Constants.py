@@ -40,7 +40,7 @@ def card_prop_rect(card, prop, pos, app_width, app_height):
             return (l, t, int(h/6) , int(h/6))
 
 
-def status_number_rect(name, opp_face_card, face_card, app_width, app_height):
+def status_number_rect(name, face_card, opp_face_card, app_width, app_height):
     if name == "hp":
         return hp_rect(face_card, app_width, app_height)
     elif name == "opp_hp":
@@ -70,10 +70,10 @@ def opp_hp_rect(opp_face_card, app_width, app_height):
     return (x,y,w,h) 
 
 def mana_rect(face_card, app_width, app_height):
-    x = app_width - (face_card[0] + int(1.3 * face_card[2]))
-    y = int (app_height/2 + 0.85 * face_card[3])
-    w = int(0.34 * face_card[2])
-    h = int(0.36 * face_card[3])
+    x = app_width - (face_card[0] + int(1.28 * face_card[2]))
+    y = int (app_height/2 + 0.83 * face_card[3])
+    w = int(0.38 * face_card[2])
+    h = int(0.40 * face_card[3])
     return (x,y,w,h)
 
 def opp_mana_rect(opp_face_card, app_width, app_height):
