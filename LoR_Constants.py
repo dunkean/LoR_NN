@@ -81,8 +81,8 @@ def atk_token_rect(face_card, app_width, app_height):
     return (x,y,w,h)
 
 def opp_atk_token_rect(opp_face_card, app_width, app_height):
-    x = app_width - (opp_face_card[0] - int(0.5 * opp_face_card[2]))
-    y = int (app_height/2 - 2 * opp_face_card[3])
+    x = app_width - (opp_face_card[0] + int(1.5 * opp_face_card[2]))
+    y = int (app_height/2 - 2.2 * opp_face_card[3])
     w = int(0.8 * opp_face_card[2])
     h = int(0.8 * opp_face_card[3])
     return (x,y,w,h)

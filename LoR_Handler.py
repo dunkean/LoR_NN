@@ -104,19 +104,19 @@ class Status:
     opp_atk_token = False
 
     def __init__(self):
-        hp = -1
-        mana = -1
-        smana = -1
-        opp_hp = -1
-        opp_mana = -1
-        opp_smana = -1
-        atk_token = False
-        opp_atk_token = False
+        self.hp = -1
+        self.mana = -1
+        self.smana = -1
+        self.opp_hp = -1
+        self.opp_mana = -1
+        self.opp_smana = -1
+        self.atk_token = False
+        self.opp_atk_token = False
         
     def to_string(self):
-        return "hp:%s, mana:%s, smama:%s, token:%i | hp:%s, mana:%s, smana:%s, token:%i" %\
-                (self.hp, self.mana, self.smana, self.atk_token, \
-                self.opp_hp, self.opp_smana, self.opp_mana, self.opp_atk_token)
+        return "hp:%s, mana:%s, smama:%s, token:%s | hp:%s, mana:%s, smana:%s, token:%s" %\
+                (self.hp, self.mana, self.smana, "X" if self.atk_token == True else "-", \
+                self.opp_hp, self.opp_smana, self.opp_mana, "X" if self.opp_atk_token == True else "-")
 
 class LoR_Handler:
     Lor_app = None
@@ -200,10 +200,16 @@ class LoR_Handler:
             status.atk_token = True
         else:
             status.atk_token = False
-        status.opp_atk_token = ( self.detect("opp_atk_token"
-                                , LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
-                                            , self.Lor_app.width, self.Lor_app.height)) != None)
-        logging.info("OCR status: %s",)
+
+        if self.detect("opp_atk_token", LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None:
+            status.opp_atk_token = True
+        else:
+            status.opp_atk_token = False
+        
+        logging.info("OCR status: %s", status.to_string())
+        print(status.to_string())
+
         return status
 
     def get_board_cards(self):
@@ -302,7 +308,6 @@ class LoR_Handler:
 
     def match_pattern(self, region, name):
         region.capture(self.mem_dc)
-        # region.img.show()
         im = ImageOps.grayscale(region.img)
         im = ImageOps.invert(im)
         cv_im = np.array(im.convert('L'))
@@ -345,6 +350,31 @@ class LoR_Handler:
             self.patterns[name] = pattern_cv_img
 
 
+    def ocr_filter_img(self, im):
+        dat = im.getdata()
+        f = []
+        for d in dat:
+            if d[0] == 255 and d[1] == 255 and d[2] == 255: #chp catk
+                f.append((255,255,255))
+            elif d[0] <=2 and d[1] == 255 and d[2] <=2: #chp catk boost
+                f.append((255,255,255))
+            elif d[0] == 255 and d[1] <=2 and d[2] <=2: #chp catk malus
+                f.append((255,255,255))
+            elif d[0] <= 176 and d[0] >= 170 and d[1] <= 225 and d[1] >= 219 and d[2] >= 245: #smana
+                f.append((255,255,255))
+            elif d[0] <= 205 and d[0] >= 175 and d[1] <= 220 and d[1] >= 190 and d[2] <= 235 and d[2] >= 215: #mana
+                f.append((255,255,255))
+            elif d[0] == 245 and d[1] == 245 and d[2] == 250: #hp
+                f.append((255,255,255))
+            elif d[0] == 246 and d[1] == 227 and d[2] == 227: #card cost
+                f.append((255,255,255))
+            else:
+                f.append((0,0,0))
+        im.putdata(f)
+        im = ImageOps.grayscale(im)
+        im = ImageOps.invert(im)
+        return im
+
     def ocr_number(self, name, intensity):
         if name not in self.regions and name != "":
             rect = LoR_Constants.status_number_rect(name, self.face_card_rect, self.opp_face_card_rect, self.Lor_app.width, self.Lor_app.height)
@@ -353,12 +383,7 @@ class LoR_Handler:
 
         region = self.regions[name]
         region.capture(self.mem_dc)
-        im = ImageOps.grayscale(region.img)
-        im = ImageOps.invert(im)
-        enhancer = ImageEnhance.Brightness(im)
-        im = enhancer.enhance(intensity)
-        # if name == "mana" or name == "opp_mana" or name == "smana":
-        #     im.show()
+        im = self.ocr_filter_img(region.img)
         self.ocr_api.SetVariable('tessedit_char_whitelist', digits)
         self.ocr_api.SetVariable('tessedit_char_blacklist', ascii_letters)
         self.ocr_api.SetPageSegMode(PSM.SINGLE_WORD)
@@ -381,10 +406,7 @@ class LoR_Handler:
 
         region = self.regions["game_buton"]
         region.capture(self.mem_dc)
-        im = ImageOps.grayscale(region.img)
-        im = ImageOps.invert(im)
-        enhancer = ImageEnhance.Brightness(im)
-        im = enhancer.enhance(2.5)
+        im = self.ocr_filter_img(region.img)
         self.ocr_api.SetPageSegMode(PSM.SINGLE_BLOCK)
         self.ocr_api.SetVariable('tessedit_char_whitelist', ascii_letters)
         self.ocr_api.SetVariable('tessedit_char_blacklist', digits)
@@ -418,6 +440,7 @@ class LoR_Handler:
             pos = (rect[0] + int(rect[2]/2), rect[1] + int(rect[3]/2))
             logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
         else:
+            # print(name, "not detected")
             logging.info("%s not detected", name)
         return pos
 
@@ -486,7 +509,7 @@ def launch():
 
     return LoR
 
-
+logging.getLogger().disabled = True
 LoR_h = launch()
 
 
