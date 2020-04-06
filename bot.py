@@ -1,153 +1,87 @@
-
 import time
-# import utils as Utils
-# import copy
 import LoR_Handler, LoR_Brain, LoR_Queries
-
-# def print_state(state):
-#     # if len(state["mulligan"]) > 0:
-#     #     print("MULLIGAN >", " - ".join(c["name"] for c in state["mulligan"]))
-#     #     # return
-
-#     lines = ["hand", "board", "pit","opp_hand","opp_board","opp_pit"]
-#     print("*********", state["stage"], "*********", state["btn"])
-#     print("HP:", state["hp"],"Mana:", state["mana"], "SpellMana:", state["smana"], "@@" if state["atk_token"] == True else "", 
-#     " -- vs -- ","HP:", state["opp_hp"],"Mana:", state["opp_mana"], "SpellMana:", state["opp_smana"], "@@" if state["opp_atk_token"] == True else "")
-#     for line in lines:
-#         if len(state[line]) > 0: 
-#             print(line, ">>>", " - ".join((c["name"] + " " + ( c["atk"] if "atk" in c else str(c["attack"])) + "|" + ( c["hp"] if "hp" in c else str(c["health"]) ) ) for c in state[line]))
-#     cast = sorted(state["cast"], key=lambda x: x["TopLeftX"])
-    
-#     if len(state["cast"]) > 0: 
-#         print(" >> ".join(("<ME>" if x["LocalPlayer"] == True else "<OPP>") + x["name"] for x in cast))
-
-
-# def in_game_automata(LoR):
-#     state = LoR.get_state()
-#     if state == None:
-#         time.sleep(0.5)
-#         return
-#     print_state(state)
-#     stage = state["stage"]
-#     if stage == "MULLIGAN":
-#         # print("CHOOSE CARDS TO CHANGE")
-#         ### replace spells
-#         LoR.next()
-#     elif stage == "END_ROUND": #no more mana, or passed before, most probably attack token "END ROUND"
-#         # print("END ROUND OR ATTACK")
-#         invokable = get_invocations(state)
-#         if invokable != None:
-#             LoR.cast(invokable)
-#         elif state["atk_token"] == True:
-#             for card in state["board"]:
-#                 LoR.attack(card)
-#             LoR.next()
-#         else:
-#             LoR.next()
-#     elif stage == "VALIDATE_ATTACK": #creatures are in the pit ready to attack //"ATTACK"
-#         # print("CAN VALIDATE OR ADD NEW CREATURES")
-#         LoR.next()
-#     elif stage == "PLAY":
-#         # print("I HAVE TO PLAY") #you have mana, you can act //"PASS"
-#         invokable = get_invocations(state)
-#         if invokable != None:
-#             LoR.cast(invokable)
-#         elif state["atk_token"] == True:
-#             for card in state["board"]:
-#                 LoR.attack(card)
-#             LoR.next()
-#         else:
-#             LoR.next()
-#     elif stage == "CHOOSE_BLOCKERS":  #opp is attacking //"SKIP BLOCK"
-#         # print("I HAVE TO BLOCK")
-#         blk_atk = get_block(state)
-#         for t in blk_atk:
-#             LoR.block(t[0],t[1])
-#         LoR.next()
-#     elif stage == "VALIDATE_BLOCK":  #opp is attacking put monsters & validate or skip //"SKIP BLOCK"
-#         # print("READY TO TAKE ATTACK")
-#         LoR.next()
-#     # elif stage == "SELECT": #a block or a spell is ready to cast choose target //"SELECT TARGET"
-#         # print("I HAVE TO SELECT A TARGET") 
-#         # LoR.next()
-#     elif stage == "VALIDATE_LAST_OPP_ACTION": #an opp action can be interrupted//"OK" or "PLAY"
-#         # print("I HAVE TO SELECT A COUNTER ACTION")
-#         LoR.next()
-#     elif stage == "VALIDATE_CAST": #you have cast a spell//"OK" or "PLAY"
-#         # print("CAST IS READY, VALIDATE")
-#         LoR.next()
-#     elif stage == "VALIDATE_OPP_CAST": #an opp spell can be interrupted//"OK" or "PLAY"
-#         # print("I HAVE TO SELECT A COUNTER SPELL") 
-#         LoR.next()
-#     elif stage == "OPPONENT": #either you or your opponent is playin / casting //"Opponent's Turn"
-#         time.sleep(0.1)
-#     else:
-#         time.sleep(0.1)
-#     time.sleep(0.5)
-
-
+import random
+import logging
 
 brain = LoR_Brain.Brain()
 
 def play(LoR, last_game_id):
-    print("game in progress...", end="\r")
+    #print("game in progress...", end="\r")
     game_id, won = LoR_Queries.get_last_game()
+    last_btn = ""
+    last_btn_repeat = 0
     while game_id == last_game_id:
         btn = LoR.ocr_btn_txt()
         cards = LoR.get_board_cards()
-        status = LoR.get_status()
-        cards.print_all()
+        # status = LoR.get_status()
+        #cards.print_all()
 
-        print("***", btn, "***")
+        if last_btn == btn:
+            last_btn_repeat = last_btn_repeat + 1
+        else:
+            last_btn_repeat = 0
+            last_btn = btn
+
+        if last_btn_repeat > 10:
+            LoR.click_next()
+            continue
+
+        #print("***", btn, "***")
         if "round" in btn or "pass" in btn: #"END_ROUND" #PASS
-            print("Need to play")
+            #print("Need to play")
             status = LoR.get_status()
-            print(status.hp, status.opp_hp, status.mana, status.opp_mana, status.smana, status.opp_smana, status.atk_token, status.opp_atk_token)
+            # print(status.hp, status.opp_hp, status.mana, status.opp_mana, status.smana, status.opp_smana, status.atk_token, status.opp_atk_token)
             card = brain.choose_card_to_cast(cards, status)
             if card == None:
                 if status.atk_token == True:
-                    print("Choose attackers")
+                    #print("Choose attackers")
                     attackers = brain.choose_attackers(cards, status)
                     for attacker in attackers:
-                        print("Attack with", attacker["name"])
+                        #print("Attack with", attacker["name"])
                         LoR.drag_to_center(attacker)
+                        time.sleep(0.5)
                 LoR.click_next()
             else:
-                print("Casting >", card["name"])
+                #print("Casting >", card["name"])
                 LoR.drag_to_center(card)
                 
         elif "skip" in btn: # SKIP BLOCK
-            print("Need to block")
+            #print("Need to block")
             status = LoR.get_status()
-            print(status.hp, status.opp_hp, status.mana, status.opp_mana, status.smana, status.opp_smana, status.atk_token, status.opp_atk_token)
+            # print(status.hp, status.opp_hp, status.mana, status.opp_mana, status.smana, status.opp_smana, status.atk_token, status.opp_atk_token)
             blocks = brain.choose_blockers(cards, status)
             for block in blocks:
                 LoR.drag_to_block(block)
+                time.sleep(0.5)
             LoR.click_next()
 
         elif "select" in btn:
-            print("Need to select target")
+            pass
+            # print("Need to select target")
 
         elif "attack" in btn or "block" in btn: ## should not happens coz its a validation #BLOCK #ATTACK
-            print("Need to validate block or attack")
+            #print("Need to validate block or attack")
             LoR.click_next()
 
         elif "ok" in btn and len(cards.cast) > 0 and cards.cast[0]["LocalPlayer"] == True: ## own cast validation Should not happen
-            print("Need to validate cast")
+            #print("Need to validate cast")
             LoR.click_next()
 
         elif "ok" in btn and (len(cards.cast) == 0 or cards.cast[0]["LocalPlayer"] == True):
-            print("Need to validate invocation")
+            #print("Need to validate invocation")
             LoR.click_next()
 
         elif "turn" in btn or "onent" in btn:
-            print("Opponent is playing")
+            pass
+            #print("Opponent is playing")
 
         elif "summon" in btn:
-            print("Summoning in progress")
+            pass
+            #print("Summoning in progress")
             
         else:
-            print("Don't know what to do")
+            pass
+            #print("Don't know what to do")
         
         time.sleep(3)
         #check if game finished
@@ -163,7 +97,7 @@ def mulligan(LoR):
     LoR.click_next()
 
 def launch_match(LoR, mode):
-    print("Launching match vs", mode)
+    logging.info("Launching match vs %s", mode)
     if mode == "bot":
         LoR.wait_for_image(["Play", "vsAI"])
     elif mode == "challenger":
@@ -173,12 +107,13 @@ def launch_match(LoR, mode):
 
 
 def loop(mode = "bot"):
+    logging.info("Starting bot.")
     LoR = LoR_Handler.launch()
-    print("Game hooked.")
-    # print("Choosing next opponent >", mode)
+    logging.info("Game hooked.")
     
     game_already_started = False
     if LoR_Queries.is_game_in_progress() == False:
+        logging.info("No game in progress.")
         launch_match(LoR, mode)
         LoR.wait_for_selection_menu()
         LoR.wait_for_image(["Versus", "Ready"])
@@ -191,10 +126,14 @@ def loop(mode = "bot"):
     game_count = 1
     LoR.update_geometry() ## TODO REMOVE
     while game_session == True:
-        if game_already_started == False:
-            LoR.wait_for_game_to_start() ## DEBUG
-            mulligan(LoR)
-            LoR.set_face_cards()
+        if game_count % 10 == 0:
+            time.sleep(int(random.random() * 60))
+
+        # if game_already_started == False:
+        LoR.wait_for_game_to_start() ## DEBUG
+        # mulligan(LoR)
+
+        LoR.set_face_cards()
         game_id, won = play(LoR, last_game_id)
 
         # # clean and restart

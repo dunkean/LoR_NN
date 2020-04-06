@@ -19,11 +19,11 @@ class Brain:
     def mulligan(self, cards):
         to_mulligan = []
         self.complete(cards)
-        # print(" - ".join(c["name"] for c in cards))
+        # #print(" - ".join(c["name"] for c in cards))
         for card in cards:
             if card["cost"] > 3:
                 to_mulligan.append(card)
-        # print(" - ".join(c["name"] for c in to_mulligan))
+        # #print(" - ".join(c["name"] for c in to_mulligan))
         return to_mulligan
 
 
@@ -44,7 +44,7 @@ class Brain:
     
         # stores the result of Knapsack 
         res = K[n][W] 
-        # print(res)   
+        # #print(res)   
         w = W 
         invokables = []
         for i in range(n, 0, -1): 
@@ -53,14 +53,14 @@ class Brain:
             if res == K[i - 1][w]: 
                 continue
             else: 
-                # print(i, wt[i - 1])
+                # #print(i, wt[i - 1])
                 invokables.append(hand[i-1])
                 res = res - val[i - 1] 
                 w = w - wt[i - 1] 
         return invokables
 
     def choose_card_to_cast(self, cards, status):
-        print(cards.board)
+        #print(cards.board)
         if len(cards.board) >= 6: ## TODO replace by cast only spells
             return None
         self.complete(cards.hand)
@@ -73,12 +73,15 @@ class Brain:
             elif card["rarity"] == "Rare": value = value * 9
             elif card["rarity"] == "Epic": value = value * 10
             elif card["rarity"] == "Champion": value = value * 13
+
+            if card["type"] == "Unit": value = value * 5
+            else: value = value * 4
             val.append(value)
 
         max_cards_cast = int(min( 6 - len(cards.board), len(cards.hand) ))
         invokables = self.knapSack(status.mana, wt, val, max_cards_cast, cards.hand)
-        print("---Brain decision---")
-        print("-".join(c["name"] for c in invokables))
+        #print("---Brain decision---")
+        #print("-".join(c["name"] for c in invokables))
         if len(invokables) == 0:
             return None
         return invokables[0]
@@ -88,11 +91,11 @@ class Brain:
         self.complete(cards.opp_pit)
         attackers = cards.opp_pit
         self.complete(cards.board)
-        # random.shuffle(attackers)
-        # random.shuffle(cards.board)
+        random.shuffle(attackers)
+        random.shuffle(cards.board)
         for blocker in cards.board:
             for attacker in cards.opp_pit:
-                if attacker["health"] <= blocker["attack"]:
+                if attacker["health"] <= blocker["attack"] and (len(cards.board) > 2 or status.hp <= 10 or blocker["health"] > attacker["attack"]):
                     blk_atk.append((blocker, attacker))
                     attackers.remove(attacker)
                     break
@@ -100,7 +103,17 @@ class Brain:
 
     def choose_attackers(self, cards, status):
         attackers = []
+        self.complete(cards.opp_board)
         self.complete(cards.board)
-        for card in cards.board:
-            attackers.append(card)
+        random.shuffle(cards.opp_board)
+        random.shuffle(cards.board)
+        for attacker in cards.board:
+            beaten = False
+            for blocker in cards.opp_board:
+                if attacker["health"] <= blocker["attack"] and attacker["attack"] < blocker["health"]:
+                    beaten = True
+
+            if beaten == False:
+                attackers.append(attacker)
+
         return attackers

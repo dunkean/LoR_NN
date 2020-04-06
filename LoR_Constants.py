@@ -31,7 +31,7 @@ def status_number_rect(name, opp_face_card, face_card, app_width, app_height):
          return opp_smana_rect(opp_face_card, app_width, app_height)
 
 def hp_rect(face_card, app_width, app_height):
-    print(face_card)
+    #print(face_card)
     x = face_card[0] + int(0.9 * face_card[2])
     y = face_card[1] + int(0.2 * face_card[3])
     w = int(0.5 * face_card[2])
@@ -47,16 +47,16 @@ def opp_hp_rect(opp_face_card, app_width, app_height):
 
 def mana_rect(face_card, app_width, app_height):
     x = app_width - (face_card[0] + int(1.3 * face_card[2]))
-    y = int (app_height/2 + 0.8 * face_card[3])
-    w = int(0.32 * face_card[2])
-    h = int(0.4 * face_card[3])
+    y = int (app_height/2 + 0.85 * face_card[3])
+    w = int(0.34 * face_card[2])
+    h = int(0.36 * face_card[3])
     return (x,y,w,h)
 
 def opp_mana_rect(opp_face_card, app_width, app_height):
     x = app_width - (opp_face_card[0] + int(1.3 * opp_face_card[2]))
     y = int (app_height/2 - 1.2 * opp_face_card[3])
-    w = int(0.32 * opp_face_card[2])
-    h = int(0.4 * opp_face_card[3])
+    w = int(0.34 * opp_face_card[2])
+    h = int(0.36 * opp_face_card[3])
     return (x,y,w,h)
 
 def smana_rect(face_card, app_width, app_height):

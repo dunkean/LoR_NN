@@ -12,6 +12,8 @@ import LoR_Constants
 from tesserocr import PyTessBaseAPI, PSM, OEM
 from string import digits, ascii_letters
 import LoR_Brain
+import logging
+
 
 class Region:
     name = ""
@@ -169,10 +171,10 @@ class LoR_Handler:
         status = Status()
         status.hp = self.ocr_number("hp", 6)
         status.opp_hp = self.ocr_number("opp_hp", 6)
-        status.mana = self.ocr_number("mana", 3)
-        status.opp_mana = self.ocr_number("opp_mana", 3)
-        status.smana = self.ocr_number("smana", 4)
-        status.opp_smana = self.ocr_number("opp_smana", 4)
+        status.mana = self.ocr_number("mana", 1)
+        status.opp_mana = self.ocr_number("opp_mana", 1)
+        status.smana = self.ocr_number("smana", 2)
+        status.opp_smana = self.ocr_number("opp_smana", 2)
         if self.detect("atk_token", LoR_Constants.atk_token_rect(self.face_card_rect
                                             , self.Lor_app.width, self.Lor_app.height)) != None:
             status.atk_token = True
@@ -316,11 +318,12 @@ class LoR_Handler:
 
         region = self.regions[name]
         region.capture(self.mem_dc)
-        # region.img.show()
         im = ImageOps.grayscale(region.img)
         im = ImageOps.invert(im)
         enhancer = ImageEnhance.Brightness(im)
         im = enhancer.enhance(intensity)
+        # if name == "mana" or name == "opp_mana" or name == "smana":
+        #     im.show()
         
         self.ocr_api.SetVariable('tessedit_char_whitelist', digits)
         self.ocr_api.SetVariable('tessedit_char_blacklist', ascii_letters)
@@ -331,6 +334,8 @@ class LoR_Handler:
             number = int(number)
         except:
             number = -1
+        # if name == "mana":
+        #     print(number)
         return int(number)
 
     def ocr_btn_txt(self):
@@ -391,7 +396,7 @@ class LoR_Handler:
         last_detected_pos = None
         while index < len(btn_names):
             name = btn_names[0]
-            print("Searching for", name)
+            #print("Searching for", name)
             detected_pos = self.detect(name)
 
             if click == True:
@@ -401,7 +406,7 @@ class LoR_Handler:
                     else:
                         self.click(last_detected_pos)
                 else:
-                    print("Clicking", name)
+                    #print("Clicking", name)
                     btn_names.pop(0)
                     last_detected_pos = detected_pos
                     self.click(detected_pos)
@@ -410,21 +415,26 @@ class LoR_Handler:
         return True
 
     def exit(self):
+        logging.info("Closing LoR Window...")
         win32gui.PostMessage(LoR_h.LoR_hwnd,win32con.WM_CLOSE,0,0)
         while win32gui.FindWindow(None, 'Legends of Runeterra') != 0:
-            print("waiting for LoR to be down...")
+            logging.info("Waiting for LoR window handler == None")
+            #print("waiting for LoR to be down...")
             time.sleep(0.5)
 
         time.sleep(5)
     
 
 def launch():
+    logging.basicConfig(filename='bot.log',level=logging.DEBUG, format='%(asctime)s %(message)s')
+
     if win32gui.FindWindow(None, 'Legends of Runeterra') == 0:
-        print("Launching LoR...")
+        logging.info("Lauching LoR subprocess...")
         subprocess.Popen('"D:\\Riot Games\\Riot Client\\RiotClientServices.exe" --launch-product=bacon --launch-patchline=live', shell=True) 
     
     while queries.board() == None:
-        print("Waiting LoR to be up...")
+        logging.info("Waiting for service positional-rectangles to be up")
+        #print("Waiting LoR to be up...")
         time.sleep(5)
 
     LoR = LoR_Handler(win32gui.FindWindow(None, 'Legends of Runeterra'))
@@ -446,10 +456,10 @@ LoR_h = launch()
 
 
     # def wait4pattern_n_click(self, name, nb_try = 5, sleep_duration = 1):
-    #     print("wait4nclick", name)
+    #     #print("wait4nclick", name)
     #     detected, rect = self.wait4pattern(name, nb_try, sleep_duration)
     #     if detected == True:
-    #         print("Going to click rect", rect)
+    #         #print("Going to click rect", rect)
     #         self.click(rect)
     #         return True
     #     return False
@@ -457,7 +467,7 @@ LoR_h = launch()
     
     # def wait4pattern(self, name, nb_try = 5, sleep_duration = 1):
     #     self.update_geometry()
-    #     print("wait4", name)
+    #     #print("wait4", name)
     #     pattern_cv_img = self.get_pattern(name)
     #     source = None
     #     if name in self.regions:
@@ -465,7 +475,7 @@ LoR_h = launch()
     #     else:
     #         source = self.Lor_app
 
-    #     print("using", source.name)
+    #     #print("using", source.name)
     #     counter = 0
     #     detected_rect = (0,0,0,0)
     #     detected = False
@@ -478,11 +488,11 @@ LoR_h = launch()
     #         time.sleep(sleep_duration)
         
     #     if detected == True and name not in self.regions: ## register new region
-    #         print(name, "detected", detected_rect, self.Lor_app.left)
+    #         #print(name, "detected", detected_rect, self.Lor_app.left)
     #         pattern_rect = (self.Lor_app.left + detected_rect[0], self.Lor_app.top + detected_rect[1], 
     #                         detected_rect[2]-detected_rect[0], detected_rect[3]-detected_rect[1])
     #         pattern_region = Region(name, self.desktop_img_dc, pattern_rect)
 
     #     detected_rect = (detected_rect[0], detected_rect[1], detected_rect[2]-detected_rect[0], detected_rect[3]-detected_rect[1])
-    #     print("DETECTED:", detected_rect)
+    #     #print("DETECTED:", detected_rect)
     #     return detected, detected_rect

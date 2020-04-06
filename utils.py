@@ -197,11 +197,7 @@
 #                     self.client_size[0] - (face_card["TopLeftX"]+0.63*face_card["Width"]),
 #                     self.client_size[1]/2 + 1.50*face_card["Height"])
 
-#     def btn_rect(self, face_card, opp = False):
-#         return (self.client_size[0] - (face_card["TopLeftX"]+1.2*face_card["Width"]), 
-#                 self.client_size[1]/2 - 0.35*face_card["Height"],
-#                 self.client_size[0] - face_card["TopLeftX"],
-#                 self.client_size[1]/2 + 0.35*face_card["Height"] )
+
     
 
 #     def card_cor(self, card):
@@ -278,7 +274,7 @@
 #         smana = self.ocr(self.smana_rect(self.face_card), 10, 4)
 #         opp_smana = self.ocr(self.smana_rect(self.opp_face_card, True), 10, 4)
 #         btn = self.ocr_txt(self.btn_rect(self.face_card), 6, 2)
-#         # print(hp, mana, smana, "---", opp_hp, opp_mana, opp_smana)
+#         # #print(hp, mana, smana, "---", opp_hp, opp_mana, opp_smana)
 #         return hp, mana, smana, opp_hp, opp_mana, opp_smana, btn
 
 #     def get_cards_state(self):
@@ -296,7 +292,7 @@
 #             if card["CardCode"] == "face":
 #                 continue
 #             card.update(self.cards_dict[card["CardCode"]])
-#             # print(self.cards_dict[card["CardCode"]]["name"], card["TopLeftY"])
+#             # #print(self.cards_dict[card["CardCode"]]["name"], card["TopLeftY"])
 #             y = self.client_size[1] - card["TopLeftY"]
 #             if y < 0: opp_hand.append(card)
 #             elif y < step: opp_board.append(card)
@@ -310,7 +306,7 @@
 #                     mulligan.append(card)
 #             elif y < 3*step: 
 #                 cast.append(card)
-#                 # print(y)
+#                 # #print(y)
 #             elif y < 4*step: pit.append(card)
 #             elif y < 5*step: board.append(card)
 #             else: hand.append(card)
@@ -389,38 +385,38 @@
 #             #     self.last_capture = ImageOps.invert(r)
 #             #     t = im.crop(rrect)
 #             #     im.show()
-#             #     print("Retry:", self.ocr(rrect, 10, 2))
+#             #     #print("Retry:", self.ocr(rrect, 10, 2))
 #             #     # im.show()
-#             print(card["name"], hp)
+#             #print(card["name"], hp)
 #             card["atk"] = atk
 #             card["hp"] = hp
-#             # print(card["name"],atk, hp, l, t, w, h)
+#             # #print(card["name"],atk, hp, l, t, w, h)
 
 #     def get_state(self):
 #         self.update_geometry()
-#         print("before capture")
+#         #print("before capture")
 #         self.capture()
-#         print("before http query")
+#         #print("before http query")
 #         self.get_positional_rectangles()
 #         if(len(self.board_data["Rectangles"]) == 0):
 #             return None
 #         if(self.face_card == None or self.opp_face_card == None):
 #             return None
-#         # print(self.board_data)
-#         print("before tokens match")
+#         # #print(self.board_data)
+#         #print("before tokens match")
 #         atk_token, opp_atk_token = self.get_atk_tokens()
-#         print("before numericals ocr")
+#         #print("before numericals ocr")
 #         hp, mana, smana, opp_hp, opp_mana, opp_smana, btn = self.get_numerical_values()
-#         print("before cards positioning")
+#         #print("before cards positioning")
 #         hand, opp_hand, board, opp_board, pit, opp_pit, cast, mulligan = self.get_cards_state()
-#         print("before cards update ocr") 
+#         #print("before cards update ocr") 
 #         self.update_attack_life(opp_board, False)
 #         self.update_attack_life(opp_pit, False)
 #         self.update_attack_life(pit, True)
 #         self.update_attack_life(board, True)
 
 #         stage = self.get_stage(btn, cast, mulligan)# + "-" + btn
-#         print("END")
+#         #print("END")
 #         return {"hand":hand,
 #                 "opp_hand":opp_hand,
 #                 "board":board,
@@ -453,7 +449,7 @@
 #         pyautogui.move(self.client_rect[0], self.client_rect[1])
     
 #     def cast(self, card, target1=None, target2=None):
-#         # print("CASTING", card["name"])
+#         # #print("CASTING", card["name"])
 #         x, y = self.card_cor(card)
 #         destx, desty = self.center()
 #         pyautogui.moveTo(x, y, 0.1, pyautogui.easeInQuad)
@@ -537,14 +533,14 @@
 #                         pyautogui.mouseUp()
 #                     counter = 0
 #                 time.sleep(0.5)
-#                 # print("Searching for", btn_name)
+#                 # #print("Searching for", btn_name)
 #                 self.update_geometry()
 #                 self.capture()
 #                 detected, _, centers = self.is_detected(pattern)
 #                 counter = counter + 1
 
 #             if not_found == False:
-#                 # print("Clicking", btn_name)
+#                 # #print("Clicking", btn_name)
 #                 self.click(centers[0])
 #             time.sleep(0.2)
 #             ## wait to disappear (useless and buggy)
@@ -566,8 +562,8 @@
 #     return False
 
 # def launch_game():
-#     print("Launching")
+#     #print("Launching")
 #     hwnd = win32gui.FindWindow(None, 'Legends of Runeterra')
 #     if hwnd == 0:
 #         subprocess.Popen('"C:\\Riot Games\\Riot Client\\RiotClientServices.exe" --launch-product=bacon --launch-patchline=live', shell=True) 
-#     print("App launched")
+#     #print("App launched")

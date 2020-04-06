@@ -1,17 +1,29 @@
 import requests
+import logging
 
 def board():
+    logging.info("query: http://127.0.0.1:21337/positional-rectangles")
     url = "http://127.0.0.1:21337/positional-rectangles"
     try:
         data = requests.get(url = url).json()
+        logging.info("--received--\\n%s", data)
         return data
     except:
+        logging.warning("No data received")
         return None
     return None
 
 def get_game_result():
+    logging.info("query: http://127.0.0.1:21337/game-result")
     url = "http://127.0.0.1:21337/game-result"
-    data = requests.get(url = url).json()
+    try:
+        data = requests.get(url = url).json()
+        logging.info("--received--\\n%s", data)
+        return data
+    except:
+        logging.warning("No data received")
+        return None
+
     return data
 
 def get_last_game():

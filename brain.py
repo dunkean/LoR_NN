@@ -1,9 +1,9 @@
 # Python3 code for Dynamic Programming 
 # based solution for 0-1 Knapsack problem 
   
-# Prints the items which are put in a  
+# #prints the items which are put in a  
 # knapsack of capacity W 
-def printknapSack(W, wt, val, n): 
+def #printknapSack(W, wt, val, n): 
     K = [[0 for w in range(W + 1)] 
             for i in range(n + 1)] 
               
@@ -22,7 +22,7 @@ def printknapSack(W, wt, val, n):
   
     # stores the result of Knapsack 
     res = K[n][W] 
-    print(res) 
+    #print(res) 
       
     w = W 
     for i in range(n, 0, -1): 
@@ -38,7 +38,7 @@ def printknapSack(W, wt, val, n):
         else: 
   
             # This item is included. 
-            print(i, wt[i - 1]) 
+            #print(i, wt[i - 1]) 
               
             # Since this weight is included 
             # its value is deducted 
@@ -51,8 +51,8 @@ wt =  [ 1,1,2,5,1,9,3 ] ### card cost
 W = 6 ### mana
 n = len(val) ### hand size
       
-printknapSack(W, wt, val, n) 
+#printknapSack(W, wt, val, n) 
 
 
 # for i in range(11):
-#     print(i)
+#     #print(i)

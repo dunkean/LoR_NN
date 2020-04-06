@@ -99,7 +99,7 @@ win_shot(rect)
 #     im = pyauto_shot(rect)
 #     # im = mss_shot(rect)
 # end = time.time()
-# print(end - start)
+# #print(end - start)
 
 im.show()
 
