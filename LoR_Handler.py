@@ -574,7 +574,7 @@ def launch():
 
     if win32gui.FindWindow(None, 'Legends of Runeterra') == 0:
         logging.info("Lauching LoR subprocess...")
-        subprocess.Popen('"D:\\Riot Games\\Riot Client\\RiotClientServices.exe" --launch-product=bacon --launch-patchline=live', shell=True) 
+        subprocess.Popen('"' + sys.argv[2] + ':\\Riot Games\\Riot Client\\RiotClientServices.exe" --launch-product=bacon --launch-patchline=live', shell=True) 
     
     while queries.board() == None:
         logging.info("Waiting for service positional-rectangles to be up")

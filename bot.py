@@ -2,6 +2,7 @@ import time
 import LoR_Handler, LoR_Brain, LoR_Queries
 import random
 import logging
+import sys
 
 brain = LoR_Brain.Brain()
 
@@ -10,11 +11,12 @@ def play(LoR, last_game_id):
     game_id, won = LoR_Queries.get_last_game()
     last_btn = ""
     last_btn_repeat = 0
+    last_invoked_card_id = None
     while game_id == last_game_id:
         btn = LoR.ocr_btn_txt()
         cards = LoR.get_board_cards()
        
-        if last_btn == btn:
+        if last_btn == btn and not ("turn" in btn or "onent" in btn or "pone" in btn):
             last_btn_repeat = last_btn_repeat + 1
         else:
             last_btn_repeat = 0
@@ -34,8 +36,9 @@ def play(LoR, last_game_id):
             logging.info("Status: %s", status.to_string())
 
             card = brain.choose_card_to_cast(cards, status)
-            if card == None:
+            if card == None or card["CardID"] == last_invoked_card_id:
                 logging.info("No card to cast")
+                last_invoked_card_id = None
                 if status.atk_token == True:
                     attackers = brain.choose_attackers(cards, status)
                     for attacker in attackers:
@@ -46,13 +49,16 @@ def play(LoR, last_game_id):
             else:
                 logging.info("Casting > %s", card["name"])
                 LoR.drag_to_center(card)
-                
+                last_invoked_card_id = card["CardID"]
+                # time.sleep(1)
+                # if LoR.card_on_board(card):
+                    
         elif "skip" in btn: # SKIP BLOCK
             logging.info("Blocking action")
             status = LoR.get_status()
             print(status.to_string())
             logging.info("Status: %s", status.to_string())
-            
+
             blocks = brain.choose_blockers(cards, status)
             for block in blocks:
                 logging.info("Blocking %s with %s", block[0]["name"], block[1]["name"])
@@ -87,6 +93,9 @@ def play(LoR, last_game_id):
         time.sleep(2)
         #check if game finished
         game_id, won = LoR_Queries.get_last_game()
+        if "round" not in btn and "pass" not in btn:
+            last_invoked_card_id = None
+
     return game_id, won
 
 
@@ -148,7 +157,7 @@ def loop(mode = "bot"):
         LoR.wait_for_image(["Continue", "Ready"])
 
 
-loop("bot")
+loop(sys.argv[1])
 
 # LoR_Handler.raw_capture()
 

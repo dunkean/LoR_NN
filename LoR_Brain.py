@@ -90,7 +90,7 @@ class Brain:
             val.append(value)
 
         max_cards_cast = int(min( 6 - len(cards.board), len(cards.hand) ))
-        invokables = None
+        invokables = []
         try:
             invokables = self.knapSack  (status.mana, wt, val, max_cards_cast, cards.hand)
             pass
@@ -98,6 +98,7 @@ class Brain:
             logging.error("Crash of knapsack", status.mana, wt, val, max_cards_cast, cards.hand)
             print("Crash of knapsack", status.mana, wt, val, max_cards_cast, cards.hand)
             pass
+
         if len(invokables) == 0:
             logging.info("--No invokables chosen---")
             return None
