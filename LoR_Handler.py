@@ -97,10 +97,10 @@ class Cards:
         s = ""
         if "cost" in c: s = s + "(" + str(c["cost"]) + ")"
         s = s + c["name"] + ":"
-        if "real_atk" in c: s = s + str(c["real_atk"]) + "/"
-        if "attack" in c: s = s + str(c["attack"]) + "|"
-        if "real_hp" in c: s = s + str(c["real_hp"]) + "/"
-        if "health" in c: s = s + str(c["health"])
+        if "real_atk" in c: s = s + str(c["real_atk"]) 
+        if "attack" in c: s = s + "(" + str(c["attack"]) + ")"
+        if "real_hp" in c: s = s + "-" + str(c["real_hp"])
+        if "health" in c: s = s + "(" + str(c["health"]) + ")"
         return s
 
     def to_string(self):
@@ -288,11 +288,15 @@ class LoR_Handler:
     def wait_for_game_to_start(self, sleep_duration = 1): ## generic query
         logging.info("Waiting for game to start...")
         cards = []
-        while( len(cards) == 0):
+        while( len(cards) == 0 ):
             cards = queries.cards()
             time.sleep(self.duration(sleep_duration))
         self.set_face_cards(cards)
-        self.wait_for_btn_ingame()
+        if self.face_card_rect == None:
+            self.wait_for_game_to_start()
+        else:
+            self.wait_for_btn_ingame()
+
 
     def duration(self, sec):
         return  (random.random()-0.5) * sec + sec
