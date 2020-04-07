@@ -148,7 +148,7 @@ def loop(mode = "bot"):
         LoR.wait_for_image(["Continue", "Ready"])
 
 
-loop()
+loop("challenger")
 
 # def rematch(LoR, mode):
 #     LoR.exit()

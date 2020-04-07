@@ -536,8 +536,6 @@ class LoR_Handler:
         logging.info("Closing LoR Window...")
         win32gui.PostMessage(LoR_h.LoR_hwnd,win32con.WM_CLOSE,0,0)
 
-
-
         while win32gui.FindWindow(None, 'Legends of Runeterra') != 0:
             logging.info("Waiting for LoR window handler == None")
             #print("waiting for LoR to be down...")
@@ -565,8 +563,8 @@ def launch():
 
     return LoR
 
-logging.getLogger().disabled = True
-LoR_h = launch()
+# logging.getLogger().disabled = True
+# LoR_h = launch()
 
 
 
