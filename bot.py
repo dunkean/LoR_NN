@@ -50,8 +50,7 @@ def play(LoR, last_game_id):
                 logging.info("Casting > %s", card["name"])
                 LoR.drag_to_center(card)
                 last_invoked_card_id = card["CardID"]
-                # time.sleep(1)
-                # if LoR.card_on_board(card):
+                time.sleep(1)
                     
         elif "skip" in btn: # SKIP BLOCK
             logging.info("Blocking action")
@@ -157,10 +156,10 @@ def loop(mode = "bot"):
         LoR.wait_for_image(["Continue", "Ready"])
 
 
-loop(sys.argv[1])
-
-# LoR_Handler.raw_capture()
-
+if sys.argv[1] == "capture":
+    LoR_Handler.raw_capture()
+else:
+    loop(sys.argv[1])
 
 # def rematch(LoR, mode):
 #     LoR.exit()
