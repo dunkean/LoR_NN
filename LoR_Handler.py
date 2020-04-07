@@ -277,7 +277,7 @@ class LoR_Handler:
                 allcards.hand.append(card)
         
         logging.info(allcards.to_string())
-        print(allcards.to_string())
+        # print(allcards.to_string())
         return allcards
 
     def wait_for_selection_menu(self, sleep_duration = 1): ## generic query
@@ -498,9 +498,10 @@ class LoR_Handler:
         pos = None
         if rect != None:
             pos = (rect[0] + int(rect[2]/2), rect[1] + int(rect[3]/2))
+            print("Detection of %s > %i:%i", name, pos[0], pos[1])
             logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
         else:
-            # print(name, "not detected")
+            print(name, "not detected")
             logging.info("%s not detected", name)
         return pos
 
@@ -519,28 +520,35 @@ class LoR_Handler:
 
     def wait_for_image(self, btn_names, click = True, sleep_duration = 3):
         logging.info("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
+        print("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
         index = 0
         last_detected_pos = None
         tries = 0
         while index < len(btn_names):
             name = btn_names[0]
             logging.info("Searching for %s", name)
+            print("Searching for %s", name)
             detected_pos = self.detect(name)
 
             if click == True:
                 if detected_pos == None:
                     tries += 1
+                    print("Not detected for %s times", tries)
                     if tries > 3:
                         tries == 0
                         logging.info("%s not detected", name)
+                        print("%s not detected", name)
                         if last_detected_pos == None:
                             logging.info("clicking screen dumbly")
+                            print("clicking screen dumbly")
                             self.click()
                         else:
                             logging.info("clicking last detected position")
+                            print("clicking last detected position")
                             self.click(last_detected_pos)
                 else:
                     logging.info("Clicking %s", name)
+                    print("Clicking %s", name)
                     btn_names.pop(0)
                     last_detected_pos = detected_pos
                     self.click(detected_pos)

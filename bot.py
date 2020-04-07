@@ -32,7 +32,7 @@ def play(LoR, last_game_id):
             logging.info("Player's turn")
             time.sleep(0.5)
             status = LoR.get_status()
-            print(status.to_string())
+            # print(status.to_string())
             logging.info("Status: %s", status.to_string())
 
             card = brain.choose_card_to_cast(cards, status)
@@ -55,7 +55,7 @@ def play(LoR, last_game_id):
         elif "skip" in btn: # SKIP BLOCK
             logging.info("Blocking action")
             status = LoR.get_status()
-            print(status.to_string())
+            # print(status.to_string())
             logging.info("Status: %s", status.to_string())
 
             blocks = brain.choose_blockers(cards, status)
@@ -140,6 +140,7 @@ def loop(mode = "bot"):
     game_count = 1
     
     while game_session == True:
+        print("Starting new match.")
         LoR.wait_for_game_to_start()
 
         ## play
@@ -153,7 +154,10 @@ def loop(mode = "bot"):
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
         game_count = game_count + 1
         time.sleep(25)
-        LoR.wait_for_image(["Continue", "Ready"])
+        if mode == "bot":
+            LoR.wait_for_image(["Continue", "Replay"])
+        else:
+            LoR.wait_for_image(["Continue", "Ready"])
 
 
 if sys.argv[1] == "capture":
