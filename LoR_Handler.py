@@ -39,7 +39,11 @@ class Region:
     
     def update_geometry(self, rect):
         if self.width != rect[2] or self.height != rect[3]:
-            self.bitmap.CreateCompatibleBitmap(self.desktop_img_dc, rect[2], rect[3])
+            try:
+                self.bitmap.CreateCompatibleBitmap(self.desktop_img_dc, rect[2], rect[3])
+                pass
+            except:
+                pass
 
         self.left = rect[0]
         self.top = rect[1]
@@ -354,7 +358,7 @@ class LoR_Handler:
         height = pattern_cv_img.shape[0]
         res = cv2.matchTemplate(cv_im, pattern_cv_img, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(res)
-        if (max_val > 0.8):
+        if (max_val > 0.9):
             logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
             return (max_loc[0], max_loc[1], width, height)
 
@@ -367,7 +371,7 @@ class LoR_Handler:
             pattern_scaled = cv2.resize(pattern_cv_img, (width, height))
             res = cv2.matchTemplate(cv_im, pattern_scaled, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(res)
-            if (max_val > 0.8):
+            if (max_val > 0.9):
                 logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
                 return (max_loc[0], max_loc[1], width, height)
         return None
@@ -430,6 +434,8 @@ class LoR_Handler:
             region = self.regions[name]
 
         region.capture(self.mem_dc)
+        # if name == "opp_mana":
+            # region.img.show()
         if region.img == None:
             return -1
         im = self.ocr_filter_img(region.img)
@@ -551,7 +557,7 @@ def launch():
 
     if win32gui.FindWindow(None, 'Legends of Runeterra') == 0:
         logging.info("Lauching LoR subprocess...")
-        subprocess.Popen('"D:\\Riot Games\\Riot Client\\RiotClientServices.exe" --launch-product=bacon --launch-patchline=live', shell=True) 
+        subprocess.Popen('"C:\\Riot Games\\Riot Client\\RiotClientServices.exe" --launch-product=bacon --launch-patchline=live', shell=True) 
     
     while queries.board() == None:
         logging.info("Waiting for service positional-rectangles to be up")
@@ -565,8 +571,8 @@ def launch():
 
     return LoR
 
-logging.getLogger().disabled = True
-LoR_h = launch()
+# logging.getLogger().disabled = True
+# LoR_h = launch()
 
 
 

@@ -76,7 +76,7 @@ class Brain:
         for card in cards.hand:
             cost = card["cost"]
             if card["type"] == "Spell":
-                cost = cost - status.smana
+                cost = max(0, cost - status.smana)
             wt.append(cost)
             
             value = card["cost"]

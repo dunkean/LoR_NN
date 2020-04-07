@@ -14,6 +14,7 @@ def play(LoR, last_game_id):
         btn = LoR.ocr_btn_txt()
         cards = LoR.get_board_cards()
         status = LoR.get_status()
+        print(status.to_string())
         logging.info("Status: %s", status.to_string())
 
         if last_btn == btn:
@@ -144,11 +145,11 @@ def loop(mode = "bot"):
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
         game_count = game_count + 1
         game_already_started = False
-        time.sleep(10)
+        time.sleep(25)
         LoR.wait_for_image(["Continue", "Ready"])
 
 
-loop()
+loop("bot")
 
 # def rematch(LoR, mode):
 #     LoR.exit()
