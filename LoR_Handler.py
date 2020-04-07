@@ -2,7 +2,7 @@ import win32gui, win32ui, win32con, win32api
 import LoR_Queries as queries
 import subprocess
 import time
-from PIL import Image, ImageOps, ImageEnhance
+from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 import numpy as np
 import cv2
 import pyautogui
@@ -13,7 +13,9 @@ from tesserocr import PyTessBaseAPI, PSM, OEM
 from string import digits, ascii_letters
 import LoR_Brain
 import logging
+import sys
 
+brain = LoR_Brain.Brain()
 
 class Region:
     name = ""
@@ -39,7 +41,12 @@ class Region:
     
     def update_geometry(self, rect):
         if self.width != rect[2] or self.height != rect[3]:
-            self.bitmap.CreateCompatibleBitmap(self.desktop_img_dc, rect[2], rect[3])
+            try:
+                self.bitmap.CreateCompatibleBitmap(self.desktop_img_dc, rect[2], rect[3])
+                pass
+            except:
+                logging.error("Unable to create region %s compatible bitmap", self.name)
+                pass
 
         self.left = rect[0]
         self.top = rect[1]
@@ -66,7 +73,7 @@ class Region:
         
         return 
 
-brain = LoR_Brain.Brain()
+
 
 class Cards:
     hand = None
@@ -135,7 +142,7 @@ class Status:
     def to_string(self):
         return "hp:%s, mana:%s, smama:%s, token:%s | hp:%s, mana:%s, smana:%s, token:%s" %\
                 (self.hp, self.mana, self.smana, "X" if self.atk_token == True else "-", \
-                self.opp_hp, self.opp_smana, self.opp_mana, "X" if self.opp_atk_token == True else "-")
+                self.opp_hp, self.opp_mana, self.opp_smana, "X" if self.opp_atk_token == True else "-")
 
 class LoR_Handler:
     Lor_app = None
@@ -166,6 +173,7 @@ class LoR_Handler:
                                 win32api.GetSystemMetrics(win32con.SM_CYFRAME) + win32api.GetSystemMetrics(92) + win32api.GetSystemMetrics(win32con.SM_CYCAPTION))
         self.Lor_app = Region("LoR", self.desktop_img_dc)
         self.ocr_api = PyTessBaseAPI(oem = OEM.TESSERACT_ONLY)
+        self.update_geometry()
 
     def update_geometry(self):
         wl, wt, _, wb = win32gui.GetWindowRect(self.LoR_hwnd)
@@ -183,8 +191,10 @@ class LoR_Handler:
             self.v_scale = current_LoR_rect[3] / 1080
             self.Lor_app.update_geometry(current_LoR_rect)
             self.set_face_cards()
+        
+        if self.face_card_rect == None or self.opp_face_card_rect == None:
+            self.set_face_cards()
 
-        ## MANAGE RECTS FOR OCR
 
     def set_face_cards(self, cards = None):
         logging.info("updating face cards")
@@ -227,7 +237,6 @@ class LoR_Handler:
             status.opp_atk_token = False
         
         logging.info("OCR status: %s", status.to_string())
-        print(status.to_string())
 
         return status
 
@@ -283,7 +292,7 @@ class LoR_Handler:
             cards = queries.cards()
             time.sleep(self.duration(sleep_duration))
         self.set_face_cards(cards)
-        self.wait_for_btn("ok")
+        self.wait_for_btn_ingame()
 
     def duration(self, sec):
         return  (random.random()-0.5) * sec + sec
@@ -311,8 +320,6 @@ class LoR_Handler:
         if pos != None:
             global_pos = self.posToGlobal(pos)
             logging.info("click %i:%i", global_pos[0], global_pos[1])
-            # center_x, center_y = self.Lor_app.center()
-            # pyautogui.moveTo(center_x, center_y, 1, pyautogui.easeInQuad)
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
         pyautogui.click()
 
@@ -321,8 +328,6 @@ class LoR_Handler:
             pos = LoR_Constants.mulligan_button_pos(card, self.Lor_app.height)
             global_pos = self.posToGlobal(pos)
             logging.info("click mulligan %s %i:%i", card["name"], global_pos[0], global_pos[1])
-            # center_x, center_y = self.Lor_app.center()
-            # pyautogui.moveTo(center_x, center_y, 1, pyautogui.easeInQuad)
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
             pyautogui.click()
 
@@ -330,9 +335,7 @@ class LoR_Handler:
         logging.info("Drag %s to center", card["name"])
         x, y = self.card_handle_pos(card)
         center_x, center_y = self.Lor_app.center()
-        # pyautogui.moveTo(center_x, center_y, 0.2, pyautogui.easeInQuad)
         pyautogui.moveTo(x, y, 0.6, pyautogui.easeInQuad)
-        # pyautogui.moveTo(center_x, center_x, 1, pyautogui.easeInQuad)
         pyautogui.dragTo(center_x, center_y, 0.2)
     
     def drag_to_block(self, block):
@@ -348,13 +351,14 @@ class LoR_Handler:
         region.capture(self.mem_dc)
         im = ImageOps.grayscale(region.img)
         im = ImageOps.invert(im)
+        # im.save("Capture.png")
         cv_im = np.array(im.convert('L'))
         pattern_cv_img = self.patterns[name]
         width = pattern_cv_img.shape[1]
         height = pattern_cv_img.shape[0]
         res = cv2.matchTemplate(cv_im, pattern_cv_img, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(res)
-        if (max_val > 0.8):
+        if (max_val > 0.9):
             logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
             return (max_loc[0], max_loc[1], width, height)
 
@@ -367,7 +371,7 @@ class LoR_Handler:
             pattern_scaled = cv2.resize(pattern_cv_img, (width, height))
             res = cv2.matchTemplate(cv_im, pattern_scaled, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(res)
-            if (max_val > 0.8):
+            if (max_val > 0.9):
                 logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
                 return (max_loc[0], max_loc[1], width, height)
         return None
@@ -375,7 +379,7 @@ class LoR_Handler:
     def register_pattern(self, name):
         if name not in self.source_patterns:
             logging.info("Adding pattern %s in sources", name)
-            pattern_img = Image.open(name + ".png")
+            pattern_img = Image.open("assets/" + name + ".png")
             pattern_cv_img = np.array(pattern_img.convert('L'))
             self.source_patterns[name] = pattern_cv_img
 
@@ -395,24 +399,25 @@ class LoR_Handler:
         f = []
         for d in dat:
             if d[0] == 255 and d[1] == 255 and d[2] == 255: #chp catk
-                f.append((255,255,255))
-            elif d[0] <=2 and d[1] == 255 and d[2] <=2: #chp catk boost
-                f.append((255,255,255))
-            elif d[0] == 255 and d[1] <=2 and d[2] <=2: #chp catk malus
-                f.append((255,255,255))
-            elif d[0] <= 176 and d[0] >= 170 and d[1] <= 225 and d[1] >= 219 and d[2] >= 245: #smana
-                f.append((255,255,255))
-            elif d[0] <= 205 and d[0] >= 175 and d[1] <= 220 and d[1] >= 190 and d[2] <= 235 and d[2] >= 215: #mana
-                f.append((255,255,255))
-            elif d[0] == 245 and d[1] == 245 and d[2] == 250: #hp
-                f.append((255,255,255))
-            elif d[0] == 246 and d[1] == 227 and d[2] == 227: #card cost
-                f.append((255,255,255))
-            else:
                 f.append((0,0,0))
+            elif d[0] <=2 and d[1] == 255 and d[2] <=2: #chp catk boost
+                f.append((0,0,0))
+            elif d[0] == 255 and d[1] <=2 and d[2] <=2: #chp catk malus
+                f.append((0,0,0))
+            elif d[0] <= 176 and d[0] >= 170 and d[1] <= 225 and d[1] >= 219 and d[2] >= 245: #smana
+                f.append((0,0,0))
+            elif d[0] <= 205 and d[0] >= 175 and d[1] <= 220 and d[1] >= 190 and d[2] <= 235 and d[2] >= 215: #mana
+                f.append((0,0,0))
+            elif d[0] == 245 and d[1] == 245 and d[2] == 250: #hp
+                f.append((0,0,0))
+            elif d[0] == 246 and d[1] == 227 and d[2] == 227: #card cost
+                f.append((0,0,0))
+            else:
+                f.append((255,255,255))
         im.putdata(f)
         im = ImageOps.grayscale(im)
-        im = ImageOps.invert(im)
+        # im = im.filter(ImageFilter.GaussianBlur(4))
+        # im = ImageOps.invert(im)
         return im
 
     def ocr_number(self, name, prop = "", pos = ""):       
@@ -440,6 +445,8 @@ class LoR_Handler:
         number = self.ocr_api.GetUTF8Text().strip('\n')
         try:
             number = int(number)
+            # if name == "mana" and number == 1:
+            #     region.img.show()
         except:
             number = -99
         logging.info("OCR number %i >", number)
@@ -493,11 +500,16 @@ class LoR_Handler:
             logging.info("%s not detected", name)
         return pos
 
-    def wait_for_btn(self, btn_text, click = True, sleep_duration = 1):
-        ocr = ""
-        while ocr != btn_text:
-            logging.info("Wainting for btn %s", btn_text)
+    def wait_for_btn_ingame(self, sleep_duration = 1):
+        self.update_geometry()
+        btn_values = ["round","pass","skip","select","attack","block","turn","summon","ok"]
+        detected = False
+        while detected == False:
+            logging.info("Wainting for button to be usable for play")
             ocr = self.ocr_btn_txt()
+            for v in btn_values:
+                if v in ocr:
+                    return
             time.sleep(self.duration(sleep_duration))
 
 
@@ -542,10 +554,23 @@ class LoR_Handler:
             time.sleep(0.5)
 
         time.sleep(5)
-    
+
+def raw_capture():
+    LoR = launch()
+    LoR.update_geometry()
+    LoR.Lor_app.capture(LoR.mem_dc)
+    im = ImageOps.grayscale(LoR.Lor_app.img)
+    im = ImageOps.invert(im)
+    im.save("capture.png")
 
 def launch():
-    logging.basicConfig(filename='bot.log',level=logging.DEBUG, format='%(asctime)s %(message)s')
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            logging.FileHandler("debug.log")
+        ]
+    )
 
     if win32gui.FindWindow(None, 'Legends of Runeterra') == 0:
         logging.info("Lauching LoR subprocess...")
@@ -553,7 +578,6 @@ def launch():
     
     while queries.board() == None:
         logging.info("Waiting for service positional-rectangles to be up")
-        #print("Waiting LoR to be up...")
         time.sleep(5)
 
     LoR = LoR_Handler(win32gui.FindWindow(None, 'Legends of Runeterra'))
@@ -565,53 +589,3 @@ def launch():
 
 # logging.getLogger().disabled = True
 # LoR_h = launch()
-
-
-
-
-
-
-
-
-
-    # def wait4pattern_n_click(self, name, nb_try = 5, sleep_duration = 1):
-    #     #print("wait4nclick", name)
-    #     detected, rect = self.wait4pattern(name, nb_try, sleep_duration)
-    #     if detected == True:
-    #         #print("Going to click rect", rect)
-    #         self.click(rect)
-    #         return True
-    #     return False
-    
-    
-    # def wait4pattern(self, name, nb_try = 5, sleep_duration = 1):
-    #     self.update_geometry()
-    #     #print("wait4", name)
-    #     pattern_cv_img = self.get_pattern(name)
-    #     source = None
-    #     if name in self.regions:
-    #         source = self.regions[name]
-    #     else:
-    #         source = self.Lor_app
-
-    #     #print("using", source.name)
-    #     counter = 0
-    #     detected_rect = (0,0,0,0)
-    #     detected = False
-    #     while detected == False:
-    #         detected, detected_rect = self.detect_pattern(source, pattern_cv_img)
-    #         # self.Lor_app.img.save("tmp.png")
-    #         # counter = counter + 1
-    #         # if counter > nb_try or detected == True:
-    #         #     break
-    #         time.sleep(sleep_duration)
-        
-    #     if detected == True and name not in self.regions: ## register new region
-    #         #print(name, "detected", detected_rect, self.Lor_app.left)
-    #         pattern_rect = (self.Lor_app.left + detected_rect[0], self.Lor_app.top + detected_rect[1], 
-    #                         detected_rect[2]-detected_rect[0], detected_rect[3]-detected_rect[1])
-    #         pattern_region = Region(name, self.desktop_img_dc, pattern_rect)
-
-    #     detected_rect = (detected_rect[0], detected_rect[1], detected_rect[2]-detected_rect[0], detected_rect[3]-detected_rect[1])
-    #     #print("DETECTED:", detected_rect)
-    #     return detected, detected_rect

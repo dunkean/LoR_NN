@@ -76,9 +76,9 @@ class Brain:
         for card in cards.hand:
             cost = card["cost"]
             if card["type"] == "Spell":
-                cost = cost - status.smana
+                cost = max(0, cost - status.smana)
             wt.append(cost)
-            
+
             value = card["cost"]
             if card["rarity"] == "Common": value = value * 8
             elif card["rarity"] == "Rare": value = value * 9
@@ -90,11 +90,21 @@ class Brain:
             val.append(value)
 
         max_cards_cast = int(min( 6 - len(cards.board), len(cards.hand) ))
-        invokables = self.knapSack(status.mana, wt, val, max_cards_cast, cards.hand)
-        logging.info("---Brain cast decision---")
-        logging.info("-".join(c["name"] for c in invokables))
+        invokables = None
+        try:
+            invokables = self.knapSack  (status.mana, wt, val, max_cards_cast, cards.hand)
+            pass
+        except:
+            logging.error("Crash of knapsack", status.mana, wt, val, max_cards_cast, cards.hand)
+            print("Crash of knapsack", status.mana, wt, val, max_cards_cast, cards.hand)
+            pass
         if len(invokables) == 0:
+            logging.info("--No invokables chosen---")
             return None
+        else:
+            logging.info("---Brain cast decision---")
+            logging.info("-".join(c["name"] for c in invokables))
+
         return invokables[0]
 
     def choose_blockers(self, cards, status):

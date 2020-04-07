@@ -13,9 +13,7 @@ def play(LoR, last_game_id):
     while game_id == last_game_id:
         btn = LoR.ocr_btn_txt()
         cards = LoR.get_board_cards()
-        status = LoR.get_status()
-        logging.info("Status: %s", status.to_string())
-
+       
         if last_btn == btn:
             last_btn_repeat = last_btn_repeat + 1
         else:
@@ -30,8 +28,11 @@ def play(LoR, last_game_id):
         #print("***", btn, "***")
         if "round" in btn or "pass" in btn: #"END_ROUND" #PASS
             logging.info("Player's turn")
-            
-            
+            time.sleep(0.5)
+            status = LoR.get_status()
+            print(status.to_string())
+            logging.info("Status: %s", status.to_string())
+
             card = brain.choose_card_to_cast(cards, status)
             if card == None:
                 logging.info("No card to cast")
@@ -48,8 +49,10 @@ def play(LoR, last_game_id):
                 
         elif "skip" in btn: # SKIP BLOCK
             logging.info("Blocking action")
-            # status = LoR.get_status()
-            # logging.info("Status: %s", status.to_string())
+            status = LoR.get_status()
+            print(status.to_string())
+            logging.info("Status: %s", status.to_string())
+            
             blocks = brain.choose_blockers(cards, status)
             for block in blocks:
                 logging.info("Blocking %s with %s", block[0]["name"], block[1]["name"])
@@ -105,12 +108,16 @@ def launch_match(LoR, mode):
         LoR.wait_for_image(["Accept"])
 
 
+
+# def game_session():
+
+
+
 def loop(mode = "bot"):
     logging.info("Starting bot.")
     LoR = LoR_Handler.launch()
     logging.info("Game hooked.")
     
-    game_already_started = False
     if LoR_Queries.is_game_in_progress() == False:
         logging.info("No game in progress.")
         launch_match(LoR, mode)
@@ -118,37 +125,33 @@ def loop(mode = "bot"):
         LoR.wait_for_image(["Versus", "Ready"])
     else:
         logging.info("Game already started.")
-        game_already_started = True
     
     # GAME SESSION
     game_session = True
     last_game_id, _ = LoR_Queries.get_last_game()
     game_count = 1
-    LoR.update_geometry() ## TODO REMOVE
+    
     while game_session == True:
-        # if game_count % 10 == 0:
-        #     logging.info("--- Making a short break after 10 games")
-        #     time.sleep(int(random.random() * 60))
+        LoR.wait_for_game_to_start()
 
-        if game_already_started == False:
-            logging.info("Game not started, waiting screen to mulligan")
-            LoR.wait_for_game_to_start() ## DEBUG
+        ## play
+        if LoR.detect("Mulligan") != None:
+            logging.info("Mulligan detected")
             mulligan(LoR)
-
-        LoR.set_face_cards()
         game_id, won = play(LoR, last_game_id)
 
-        # # clean and restart
-        # LoR.game_ended() #Not necessary yet
+        ## restart
         last_game_id = game_id
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
         game_count = game_count + 1
-        game_already_started = False
-        time.sleep(10)
+        time.sleep(25)
         LoR.wait_for_image(["Continue", "Ready"])
 
 
-loop("challenger")
+loop("bot")
+
+# LoR_Handler.raw_capture()
+
 
 # def rematch(LoR, mode):
 #     LoR.exit()

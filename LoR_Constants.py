@@ -63,14 +63,14 @@ def hp_rect(face_card, app_width, app_height):
     return (x,y,w,h) 
 
 def opp_hp_rect(opp_face_card, app_width, app_height):
-    x = opp_face_card[0] + int(0.9 * opp_face_card[2])
+    x = opp_face_card[0] + int(0.92 * opp_face_card[2])
     y = opp_face_card[1] + int(0.2 * opp_face_card[3])
     w = int(0.5 * opp_face_card[2])
     h = int(0.8 * opp_face_card[3])
     return (x,y,w,h) 
 
 def mana_rect(face_card, app_width, app_height):
-    x = app_width - (face_card[0] + int(1.28 * face_card[2]))
+    x = app_width - (face_card[0] + int(1.35 * face_card[2]))
     y = int (app_height/2 + 0.83 * face_card[3])
     w = int(0.38 * face_card[2])
     h = int(0.40 * face_card[3])
