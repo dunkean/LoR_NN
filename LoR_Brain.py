@@ -69,6 +69,12 @@ class Brain:
         if len(cards.board) >= 6: ## TODO replace by cast only spells
             logging.info("Board is full")
             return None
+        if status.mana < 0: ## TODO replace by cast only spells
+            logging.error("Mana not recognized, cannot cast (-99)")
+            return None
+        if status.mana == 0: ## TODO replace by cast only spells
+            logging.info("No mana to cast")
+            return None
 
         self.complete(cards.hand)
         wt = []

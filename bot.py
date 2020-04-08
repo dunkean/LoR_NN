@@ -153,7 +153,9 @@ def loop(mode = "bot"):
         last_game_id = game_id
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
         game_count = game_count + 1
-        time.sleep(25)
+        time.sleep(10)
+        LoR.patterns = {}
+        LoR.regions = {}
         if mode == "bot":
             LoR.wait_for_image(["Continue", "Replay"])
         else:

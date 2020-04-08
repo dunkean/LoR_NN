@@ -40,6 +40,8 @@ class Region:
         return (self.left + int(self.width/2), self.top + int(self.height/2))
     
     def update_geometry(self, rect):
+        if rect[2] <= 0 or rect[3] <= 0:
+            logging.error("Unable to create region %s with non positive size: %i-%i", self.name, rect[2], rect[3])
         if self.width != rect[2] or self.height != rect[3]:
             try:
                 self.bitmap.CreateCompatibleBitmap(self.desktop_img_dc, rect[2], rect[3])
@@ -59,18 +61,24 @@ class Region:
         return False
 
     def capture(self, mem_dc):
-        if self.width <= 0 or self.height <= 0:
+        if self.width <= 0 or self.height <= 0 or self.bitmap == None:
             print("PROBLEM WITH REGION", self.name)
             return
-        mem_dc.SelectObject(self.bitmap) 
-        mem_dc.BitBlt(  (0, 0),  (self.width, self.height), 
-                        self.desktop_img_dc, (self.left, self.top), 
-                        win32con.SRCCOPY)
-        
-        self.img =  Image.frombuffer(
-                    'RGB', (self.width, self.height),
-                    self.bitmap.GetBitmapBits(True), 'raw', 'BGRX', 0, 1)
-        
+        try:
+            mem_dc.SelectObject(self.bitmap) 
+            mem_dc.BitBlt(  (0, 0),  (self.width, self.height), 
+                            self.desktop_img_dc, (self.left, self.top), 
+                            win32con.SRCCOPY)
+            
+            self.img =  Image.frombuffer(
+                        'RGB', (self.width, self.height),
+                        self.bitmap.GetBitmapBits(True), 'raw', 'BGRX', 0, 1)
+            pass
+        except:
+            logging.error("Unable to select or copy region", self.name)
+            self.img = None
+            pass
+
         return 
 
 
@@ -353,6 +361,8 @@ class LoR_Handler:
 
     def match_pattern(self, region, name):
         region.capture(self.mem_dc)
+        if region.img == None:
+            return None
         im = ImageOps.grayscale(region.img)
         im = ImageOps.invert(im)
         # im.save("Capture.png")
@@ -466,6 +476,8 @@ class LoR_Handler:
 
         region = self.regions["game_buton"]
         region.capture(self.mem_dc)
+        if region.img == "ERROR":
+            return None
         im = self.ocr_filter_img(region.img)
         self.ocr_api.SetPageSegMode(PSM.SINGLE_BLOCK)
         self.ocr_api.SetVariable('tessedit_char_whitelist', ascii_letters)
@@ -498,10 +510,10 @@ class LoR_Handler:
         pos = None
         if rect != None:
             pos = (rect[0] + int(rect[2]/2), rect[1] + int(rect[3]/2))
-            print("Detection of %s > %i:%i", name, pos[0], pos[1])
+            # print("Detection of %s > %i:%i", name, pos[0], pos[1])
             logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
         else:
-            print(name, "not detected")
+            # print(name, "not detected")
             logging.info("%s not detected", name)
         return pos
 
@@ -520,35 +532,35 @@ class LoR_Handler:
 
     def wait_for_image(self, btn_names, click = True, sleep_duration = 3):
         logging.info("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
-        print("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
+        # print("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
         index = 0
         last_detected_pos = None
         tries = 0
         while index < len(btn_names):
             name = btn_names[0]
             logging.info("Searching for %s", name)
-            print("Searching for %s", name)
+            # print("Searching for %s", name)
             detected_pos = self.detect(name)
 
             if click == True:
                 if detected_pos == None:
                     tries += 1
-                    print("Not detected for %s times", tries)
+                    # print("Not detected for %s times", tries)
                     if tries > 3:
                         tries == 0
                         logging.info("%s not detected", name)
-                        print("%s not detected", name)
+                        # print("%s not detected", name)
                         if last_detected_pos == None:
                             logging.info("clicking screen dumbly")
-                            print("clicking screen dumbly")
+                            # print("clicking screen dumbly")
                             self.click()
                         else:
                             logging.info("clicking last detected position")
-                            print("clicking last detected position")
+                            # print("clicking last detected position")
                             self.click(last_detected_pos)
                 else:
                     logging.info("Clicking %s", name)
-                    print("Clicking %s", name)
+                    # print("Clicking %s", name)
                     btn_names.pop(0)
                     last_detected_pos = detected_pos
                     self.click(detected_pos)
