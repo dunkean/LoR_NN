@@ -169,6 +169,8 @@ class LoR_Handler:
     mem_dc = None
     ocr_api = None
 
+    shot_count = 0
+
     def __init__(self, LoR_hwnd):
         self.LoR_hwnd = LoR_hwnd
         ## create device context for desktop and client
@@ -452,6 +454,7 @@ class LoR_Handler:
         if region.img == None:
             return -1
         im = self.ocr_filter_img(region.img)
+        
         self.ocr_api.SetVariable('tessedit_char_whitelist', digits)
         self.ocr_api.SetVariable('tessedit_char_blacklist', ascii_letters)
         self.ocr_api.SetPageSegMode(PSM.SINGLE_WORD)
@@ -463,6 +466,13 @@ class LoR_Handler:
             #     region.img.show()
         except:
             number = -99
+        
+        # if number <= 20:
+        #     im.save("samples/im ("+str(number)+")/" + str(self.shot_count) + ".png")
+        # else:
+        #     im.save("samples/im (--)/" + name + '_' + str(self.shot_count) + ".png")
+
+        self.shot_count += 1
         logging.info("OCR number %i >", number)
         return int(number)
 
