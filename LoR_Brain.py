@@ -171,7 +171,81 @@ class Brain:
         else:
             return -1
 
-    # def resolve_fight():
+# "Challenger",
+
+# > effects: "Drain", "Rally","Support","Capture",
+# > status: "Silenced","Frostbite","Barrier","Stun"
+# > conditions: "Last Breath","Enlightened","Allegiance",
+
+    def simulate_duel(self, atkr, blkr):
+
+        if self.has(atkr,"Double Attack"):
+            hp, opp_hp, a_hp, b_hp = self.simulate_duel(atkr, blkr)
+        else:
+            hp = 0
+            if duel[1] != None:
+                blkr = (self.atk(duel[1]), self.hp(duel[1]))
+            hp = 0
+            opp_hp = 0
+
+        a_atk = self.atk(atkr)
+        a_hp = self.hp(atkr)
+        if blkr == None:
+            hp -= a_atk
+            if self.has(atkr,"Lifesteal"): opp_hp += a_atk
+            if self.has(atkr,"Double Attack"): hp -= a_atk
+        else:
+            blk = self.atk(blkr)
+            bhp = self.hp(blkr)
+
+            ## atk turn
+            bhp -= atk
+            if self.has(atkr,"Quick Attack") and bhp <= 0:
+                pass
+            else:
+                ahp -= blk
+
+
+
+            pass
+
+
+# > atk props: 
+# "Can't Block",
+# "Fearsome",
+# "Ephemeral",
+# "Elusive",
+# 
+# "Lifesteal",
+# "Tough",
+# "Quick Attack",
+# "Overwhelm",
+# "Double Attack"
+#  "Regeneration"
+
+
+    def has(self, card, property):
+        if property in card["keywords"]:
+            return True
+        return False
+
+    def simulate_fight(self, duels): ## duel should be sorted by TopLeftX
+        ### discard unrealistic situation #Elusive / Fearsome / Can't Block
+        for duel in duels:
+            if duel[1] == None:
+                continue
+            if self.has(duel[0], "Elusive") and not self.has(duel[1], "Elusive"):
+                return False
+            if self.has(duel[1], "Can't Block"):
+                return False
+            if self.has(duel[0], "Fearsome") and self.atk(duel[1]) < 3:
+                return False
+
+        # apply_global_effects()
+        # apply_local_effects()
+        for duel in duels:
+            hp, opp_hp, atkr, blkr = self.simulate_duel(duel)
+        pass
 
     def generate_blk_permutations(self, atkrs, board):
         board.extend(["N" for i in range(len(atkrs)+1)])
