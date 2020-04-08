@@ -154,8 +154,11 @@ def loop(mode = "bot"):
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
         game_count = game_count + 1
         time.sleep(10)
+        ### RESET but should not be done if not bugged
         LoR.patterns = {}
         LoR.regions = {}
+        LoR.reset_devices()
+        
         if mode == "bot":
             LoR.wait_for_image(["Continue", "Replay"])
         else:
