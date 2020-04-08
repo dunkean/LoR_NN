@@ -184,16 +184,16 @@ class LoR_Handler:
         self.update_geometry()
 
     def reset_devices(self):
-        elf.LoR_hwnd = win32gui.FindWindow(None, 'Legends of Runeterra')
-          ## create device context for desktop and client
-        desktop_hwnd = win32gui.GetDesktopWindow()
-        desktop_dc = win32gui.GetWindowDC(desktop_hwnd)
-        self.desktop_img_dc = win32ui.CreateDCFromHandle(desktop_dc)
-        self.mem_dc = self.desktop_img_dc.CreateCompatibleDC()
-        ## default system decorations
-        self.sys_wdn_offset = ( win32api.GetSystemMetrics(win32con.SM_CXFRAME) + win32api.GetSystemMetrics(92), #SM_CXPADDEDBORDER
-                                win32api.GetSystemMetrics(win32con.SM_CYFRAME) + win32api.GetSystemMetrics(92) + win32api.GetSystemMetrics(win32con.SM_CYCAPTION))
-        self.Lor_app = Region("LoR", self.desktop_img_dc)
+        # self.LoR_hwnd = win32gui.FindWindow(None, 'Legends of Runeterra')
+        #   ## create device context for desktop and client
+        # desktop_hwnd = win32gui.GetDesktopWindow()
+        # desktop_dc = win32gui.GetWindowDC(desktop_hwnd)
+        # self.desktop_img_dc = win32ui.CreateDCFromHandle(desktop_dc)
+        # self.mem_dc = self.desktop_img_dc.CreateCompatibleDC()
+        # ## default system decorations
+        # self.sys_wdn_offset = ( win32api.GetSystemMetrics(win32con.SM_CXFRAME) + win32api.GetSystemMetrics(92), #SM_CXPADDEDBORDER
+        #                         win32api.GetSystemMetrics(win32con.SM_CYFRAME) + win32api.GetSystemMetrics(92) + win32api.GetSystemMetrics(win32con.SM_CYCAPTION))
+        # self.Lor_app = Region("LoR", self.desktop_img_dc)
         self.ocr_api = PyTessBaseAPI(oem = OEM.TESSERACT_ONLY)
 
 
