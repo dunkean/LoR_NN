@@ -312,7 +312,7 @@ class LoR_Handler:
     def wait_for_game_to_start(self, sleep_duration = 1): ## generic query
         logging.info("Waiting for game to start...")
         cards = []
-        while( len(cards) == 0 ):
+        while( cards == None or len(cards) == 0 ):
             cards = queries.cards()
             time.sleep(self.duration(sleep_duration))
         self.set_face_cards(cards)
@@ -388,7 +388,7 @@ class LoR_Handler:
         height = pattern_cv_img.shape[0]
         res = cv2.matchTemplate(cv_im, pattern_cv_img, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(res)
-        if (max_val > 0.9):
+        if (max_val > 0.8):
             logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
             return (max_loc[0], max_loc[1], width, height)
 
@@ -401,7 +401,7 @@ class LoR_Handler:
             pattern_scaled = cv2.resize(pattern_cv_img, (width, height))
             res = cv2.matchTemplate(cv_im, pattern_scaled, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(res)
-            if (max_val > 0.9):
+            if (max_val > 0.7):
                 logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
                 return (max_loc[0], max_loc[1], width, height)
         return None
@@ -434,7 +434,7 @@ class LoR_Handler:
                 f.append((0,0,0))
             elif d[0] == 255 and d[1] <=2 and d[2] <=2: #chp catk malus
                 f.append((0,0,0))
-            elif d[0] <= 176 and d[0] >= 170 and d[1] <= 225 and d[1] >= 219 and d[2] >= 245: #smana
+            elif d[0] <= 179 and d[0] >= 164 and d[1] <= 230 and d[1] >= 211 and d[2] >= 233: #smana
                 f.append((0,0,0))
             elif d[0] <= 205 and d[0] >= 175 and d[1] <= 220 and d[1] >= 190 and d[2] <= 235 and d[2] >= 215: #mana
                 f.append((0,0,0))
@@ -476,7 +476,7 @@ class LoR_Handler:
         number = self.ocr_api.GetUTF8Text().strip('\n')
         try:
             number = int(number)
-            # if name == "mana" and number == 1:
+            # if name == "mana":# and number == 1:
             #     region.img.show()
         except:
             number = -99
@@ -500,6 +500,7 @@ class LoR_Handler:
 
         region = self.regions["game_buton"]
         region.capture(self.mem_dc)
+        # region.img.show()
         if region.img == "ERROR":
             return None
         im = self.ocr_filter_img(region.img)
@@ -548,6 +549,7 @@ class LoR_Handler:
         while detected == False:
             logging.info("Wainting for button to be usable for play")
             ocr = self.ocr_btn_txt()
+            # print(ocr)
             for v in btn_values:
                 if v in ocr:
                     return
@@ -612,13 +614,13 @@ def raw_capture():
     im.save("capture.png")
 
 def launch():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler("debug.log")
-        ]
-    )
+    # logging.basicConfig(
+    #     level=logging.INFO,
+    #     format="%(asctime)s [%(levelname)s] %(message)s",
+    #     handlers=[
+    #         logging.FileHandler("debug.log")
+    #     ]
+    # )
 
     if win32gui.FindWindow(None, 'Legends of Runeterra') == 0:
         logging.info("Lauching LoR subprocess...")
@@ -635,5 +637,21 @@ def launch():
 
     return LoR
 
-# logging.getLogger().disabled = True
+
+logger = logging.getLogger('server_logger')
+logger.setLevel(logging.INFO)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('server.log')
+fh.setLevel(logging.INFO)
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+ch.setFormatter(formatter)
+fh.setFormatter(formatter)
+# add the handlers to logger
+logger.addHandler(ch)
+logger.addHandler(fh)
+logging.getLogger().disabled = False
 # LoR_h = launch()
