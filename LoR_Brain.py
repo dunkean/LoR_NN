@@ -146,7 +146,7 @@ class Brain:
                 if self.hp(attacker) <= self.atk(blocker) and self.atk(attacker) < self.hp(blocker):
                     beaten = True
 
-            if beaten == False:
+            if beaten == False or (len(cards.board) > 3 and attacker["rarity"] != "Rare"):
                 attackers.append(attacker)
         logging.info("---Brain attack decision---")
         logging.info("-".join(c["name"] for c in attackers))

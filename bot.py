@@ -14,9 +14,11 @@ def play(LoR, last_game_id):
     last_invoked_card_id = None
     while game_id == last_game_id:
         btn = LoR.ocr_btn_txt()
-        cards = LoR.get_board_cards()
        
-        if last_btn == btn and not ("turn" in btn or "onent" in btn or "pone" in btn):
+       
+        # status = LoR.get_status()
+        # print(status.to_string())
+        if last_btn == btn and not ("turn" in btn or "onen" in btn or "pone" in btn):
             last_btn_repeat = last_btn_repeat + 1
         else:
             last_btn_repeat = 0
@@ -28,9 +30,10 @@ def play(LoR, last_game_id):
             continue
 
         #print("***", btn, "***")
-        if "round" in btn or "pass" in btn: #"END_ROUND" #PASS
+        if "oun" in btn or "pas" in btn: #"END_ROUND" #PASS
             logging.info("Player's turn")
             time.sleep(0.5)
+            cards = LoR.get_board_cards()
             status = LoR.get_status()
             # print(status.to_string())
             logging.info("Status: %s", status.to_string())
@@ -44,7 +47,7 @@ def play(LoR, last_game_id):
                     for attacker in attackers:
                         logging.info("Attack with %s", attacker["name"])
                         LoR.drag_to_center(attacker)
-                        time.sleep(0.5)
+                        time.sleep(0.2)
                 LoR.click_next()
             else:
                 logging.info("Casting > %s", card["name"])
@@ -55,6 +58,7 @@ def play(LoR, last_game_id):
         elif "skip" in btn: # SKIP BLOCK
             logging.info("Blocking action")
             status = LoR.get_status()
+            cards = LoR.get_board_cards()
             # print(status.to_string())
             logging.info("Status: %s", status.to_string())
 
@@ -65,11 +69,11 @@ def play(LoR, last_game_id):
                 time.sleep(0.5)
             LoR.click_next()
 
-        elif "select" in btn:
+        elif "elec" in btn:
             logging.info("pass - but need to select target")
             pass
 
-        elif "attack" in btn or "block" in btn: ## should not happens coz its a validation #BLOCK #ATTACK
+        elif "ttac" in btn or "block" in btn: ## should not happens coz its a validation #BLOCK #ATTACK
             logging.info("validate block or attack")
             LoR.click_next()
 
@@ -158,7 +162,7 @@ def loop(mode = "bot"):
         LoR.patterns = {}
         LoR.regions = {}
         LoR.reset_devices()
-        
+
         if mode == "bot":
             LoR.wait_for_image(["Continue", "Replay"])
         else:
