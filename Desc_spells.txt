@@ -1,0 +1,151 @@
+A battling ally strikes a battling enemy.
+Shuffle a Draven into your deck.
+A battling ally strikes all battling enemies.
+Shuffle a Garen into your deck.
+An ally Captures a unit.
+An ally and an enemy strike each other.
+Costs 1 less for each ally that died this round. Summon a random 5 cost follower from Demacia.
+Create a random spell that costs 6+ in hand.
+Refill your spell mana.
+Create another random spell in hand.
+Enlightened: Create 2 instead.
+Create another random spell in hand.
+Enlightened: Create 2 instead.
+Shuffle a Karma into your deck.
+Deal 1 to ALL battling units.
+Shuffle a Katarina into your deck.
+Deal 1 to all enemy units. Heal your Nexus 3.
+Deal 1 to an allied follower. If it survives, create a copy of it in hand.
+Deal 1 to an ally and give another ally +2|+2 this round.
+Shuffle a Vladimir into deck.
+Deal 1 to an ally to give another ally +2|+2 this round.
+Deal 1 to an enemy or the enemy Nexus, and 1 to another.
+Draw 1.
+Deal 1 to anything.
+Deal 2 to ALL units.
+Deal 2 to an enemy unit, then Rally.
+Deal 2 to anything.
+Shuffle an Ezreal into your deck.
+Deal 3 to an enemy or the enemy Nexus, 2 to another, and 1 to another.
+Deal 3 to each enemy that was summoned this round.
+Shuffle a Thresh into deck.
+Deal 4 to an enemy unit if it has 0 Power. Otherwise, Frostbite it.
+Deal 4 to an enemy unit. Fleeting.
+Deal 4 to the enemy Nexus.
+Shuffle a Darius into your deck.
+Deal 4 to the enemy nexus and 1 to all other enemies. Fleeting.
+Discard 2 to draw 2.
+If you have exactly 1 other card in hand, discard 1 to draw 1.
+Drain 1 from a unit to summon a Spiderling.
+Drain 3 from a unit.
+Drain 4 from an ally unit.
+Draw 3, then reduce those cards' costs by 1.
+Shuffle a Heimerdinger into your deck.
+Draw a Champion.
+Frostbite 2 enemies.
+Shuffle an Anivia into your deck.
+Frostbite 2 enemies. 
+Frostbite an enemy and all other enemies with 3 or less Health. Draw 1.
+Frostbite an enemy with 3 or less Health.
+Frostbite an enemy.
+Shuffle an Ashe into your deck.
+Fully heal an ally, then double its Power and Health.
+Get an empty mana gem and heal your Nexus 3.
+Give allies +2|+2 and Overwhelm this round.
+Give allies +3|+3 this round.
+Give allies Challenger this round.
+Give an ally +0|+2 this round.
+Give an ally +0|+3 this round.
+Give an ally +1|+0 and Quick Attack this round.
+Give an ally +1|+1 this round.
+Give an ally +3|+0 and Barrier this round.
+Shuffle a Fiora into your deck.
+Give an ally +3|+0 and Overwhelm this round.
+Give an ally +3|+0 or +0|+3 this round.
+Give an ally +3|+0 this round.
+Give an ally +4|+0 and Quick Attack this round.
+Give an ally Barrier and Lifesteal this round.
+Give an ally Barrier this round.
+Shuffle a Lux into your deck.
+Give an ally Elusive this round.
+Give two allies +3|+3 this round.
+Grant ALL battling followers Ephemeral.
+Grant Barrier to an ally in hand. 
+Draw 1.
+Grant a damaged ally +3|+3.
+Shuffle a Braum into your deck.
+Grant allies in hand +1|+0.
+Grant an ally +2|+2 and Ephemeral.
+Grant an ally +8|+4.
+Shuffle a Tryndamere into your deck.
+Grant an ally Elusive.
+Grant an ally Tough.
+Grant an ally and all allied copies of it everywhere +2|+2.
+Grant two allies +0|+3.
+Grant two allies +2|+0.
+Heal an ally or your Nexus 3.
+Heal an ally or your Nexus 7. Draw 1.
+If 3+ allies have died this round, summon Vilemaw.
+Grant Poro allies everywhere +1|+1.
+If an ally died this round, deal 3 to a unit.
+Shuffle a Kalista into your deck.
+If an ally died this round, summon 2 Spiderling.
+Shuffle a Elise into your deck.
+If you have a 5+ Power ally, kill ALL units with 4 or less Power.
+If you have a Yeti, summon an Enraged Yeti. Otherwise, create one on top of your deck.
+If you have exactly 1 ally, grant it +3|+3.
+If you've played 15 cards with different names this game, summon Catastrophe. 
+If you've played 20 cards with different names this game, summon Catastrophe. 
+Kill ALL units.
+Kill a damaged unit to create a Fleeting  in hand.
+Kill a unit with 3 or less Power.
+Kill a unit.
+Kill all enemies with 0 Power, then Frostbite all enemies.
+Kill an ally to deal damage equal to its Power to anything.
+Kill an ally to draw 2.
+Pick a card in hand. Shuffle 4 exact copies of it into your deck.
+Pick a follower. Create an Ephemeral copy of it in hand.
+Plant 5 Poison Puffcap on random cards in the enemy deck.
+Shuffle a Teemo into your deck.
+Rally.
+Shuffle a Lucian into your deck.
+Recall a unit.
+Recall an ally to summon a Living Shadow in its place.
+Shuffle a Zed into your deck.
+Recall an ally.
+Reduce the cost of allies in hand by 1.
+Remove Ephemeral from an ally to grant it to an enemy.
+Revive a random ally that died this round.
+Revive the 6 Strongest allies that died this game and grant them Ephemeral.
+Silence a follower.
+Steal an enemy follower this round. (Can't play if you have 6 allies already.)
+Stop a fast spell, slow spell, or Skill.
+Stun all enemies with 4 or less Power.
+Stun an attacking enemy.
+Shuffle a Yasuo into your deck.
+Stun an enemy.
+Stun an enemy. Give all allies +2|+0 this round.
+Summon 2 Dauntless Vanguard, then grant Elite allies +1|+1.
+Summon 2 Scrap Scuttler.
+Summon 2 Spectral Rider.
+Shuffle a Hecarim into deck.
+Summon 2 exact copies of an ally. They're Ephemeral.
+Summon 3 Spiderling, then grant Spider allies +1|+0. 
+Summon 3 Unleashed Spirit.
+Summon a Dauntless Vanguard.
+Summon an Illegal Contraption.
+Summon an exact copy of an ally. It's Ephemeral and 1|1.
+Summon the top unit from our deck now and EACH Round Start.
+Swap two allies. Give them Barrier.
+Shuffle a Shen into your deck.
+To play, discard 1.
+Deal 3 to anything.
+To play, discard 1.
+Give an ally +1|+0 this round.
+To play, discard 1. Deal 3 to anything.
+Shuffle a Jinx into your deck.
+To play, spend all your mana.
+Deal that much to a unit.
+Transform a follower into another follower.
+When cast or discarded, grant allies +1|+0.
+When cast or discarded, summon a Scrap Scuttler.
