@@ -14,7 +14,7 @@ from string import digits, ascii_letters
 import LoR_Brain
 import logging
 import sys
-
+pyautogui.FAILSAFE = False
 brain = LoR_Brain.Brain()
 
 class Region:

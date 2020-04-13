@@ -24,8 +24,9 @@ def play(LoR, last_game_id):
             last_btn_repeat = 0
             last_btn = btn
 
-        if last_btn_repeat > 10:
+        if last_btn_repeat > 10 and last_btn_repeat != "":
             logging.warning("btn value is the same for 10 times: %s, click next", last_btn)
+            last_btn_repeat = 0
             LoR.click_next()
             continue
 
