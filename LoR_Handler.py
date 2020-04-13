@@ -14,6 +14,7 @@ from string import digits, ascii_letters
 import LoR_Brain
 import logging
 import sys
+import os
 
 brain = LoR_Brain.Brain()
 
@@ -465,6 +466,7 @@ class LoR_Handler:
             region = self.regions[name]
 
         region.capture(self.mem_dc)
+
         if region.img == None:
             return -1
         im = self.ocr_filter_img(region.img)
@@ -473,11 +475,14 @@ class LoR_Handler:
         self.ocr_api.SetVariable('tessedit_char_blacklist', ascii_letters)
         self.ocr_api.SetPageSegMode(PSM.SINGLE_WORD)
         self.ocr_api.SetImage(im)
+       
         number = self.ocr_api.GetUTF8Text().strip('\n')
         try:
             number = int(number)
-            # if name == "mana":# and number == 1:
-            #     region.img.show()
+
+            # if not os.path.isfile(name + str(number) + ".png"):
+            #     region.img.save(name + str(number) + ".png")
+                # region.img.show()
         except:
             number = -99
         

@@ -18,6 +18,7 @@ def play(LoR, last_game_id):
        
         # status = LoR.get_status()
         # print(status.to_string())
+        # print("*****",btn,"******")
         if last_btn == btn and not ("turn" in btn or "onen" in btn or "pone" in btn):
             last_btn_repeat = last_btn_repeat + 1
         else:
