@@ -3,6 +3,7 @@ import LoR_Handler, LoR_Brain, LoR_Queries
 import random
 import logging
 import sys
+import time
 
 brain = LoR_Brain.Brain()
 
@@ -22,8 +23,13 @@ def play(LoR, last_game_id):
         if last_btn == btn and not ("turn" in btn or "onen" in btn or "pone" in btn):
             last_btn_repeat = last_btn_repeat + 1
         else:
-            last_btn_repeat = 0
-            last_btn = btn
+            cards = LoR_Queries.cards()
+            if( cards == None or len(cards) == 0 ):
+                game_id, won = LoR_Queries.get_last_game()
+                continue
+            else:
+                last_btn_repeat = 0
+                last_btn = btn
 
         if last_btn_repeat > 10:
             logging.warning("btn value is the same for 10 times: %s, click next", last_btn)
@@ -156,7 +162,10 @@ def loop(mode = "bot"):
 
         ## restart
         last_game_id = game_id
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
+        print(current_time)
         game_count = game_count + 1
         time.sleep(10)
         ### RESET but should not be done if not bugged
