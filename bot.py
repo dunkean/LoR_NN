@@ -7,6 +7,45 @@ import time
 
 brain = LoR_Brain.Brain()
 
+
+def play_unsafe(LoR, last_game_id): # no failsafe for wrong ocr
+    game_id, won = LoR_Queries.get_last_game()
+    while game_id == last_game_id: #game not finished
+        btn = LoR.ocr_btn_txt() #replace with pattern matching
+
+        if not_my_turn():
+            time.sleep(1)
+            continue
+
+        action = brain.choose_next_action()
+        if action.type == "cast":
+            for card in action.cards:
+                logging.info("Casting > %s", card["name"])
+                LoR.drag_to_center(card)
+                time.sleep(1)
+        elif action.type == "cast_n_target":
+            for card in action.cards:
+                LoR.drag_to_center(card)
+                for target in card.targets:
+                    logging.info("Casting %s to %s", card, target)
+                    LoR.click_card(card)
+                    time.sleep(0.1)
+            time.sleep(0.4)
+        elif action.type == "attack":
+            for card in action.cards:
+                logging.info("Attack with %s", card["name"])
+                LoR.drag_to_center(card)
+                time.sleep(0.2)
+        elif action.type == "block":
+            for card in action.cards):
+                logging.info("Blocking %s with %s", card["name"], card.target["name"])
+                LoR.drag_to_block((card, card.target))
+                time.sleep(0.5)
+        LoR.click_next()
+
+        game_id, won = LoR_Queries.get_last_game()
+    return game_id, won
+
 def play(LoR, last_game_id):
     logging.info("Starting ingame loop")
     game_id, won = LoR_Queries.get_last_game()
@@ -15,11 +54,12 @@ def play(LoR, last_game_id):
     last_invoked_card_id = None
     while game_id == last_game_id:
         btn = LoR.ocr_btn_txt()
-       
-       
+
         # status = LoR.get_status()
         # print(status.to_string())
         # print("*****",btn,"******")
+
+        ####### FAILSAFE #########
         if last_btn == btn and not ("turn" in btn or "onen" in btn or "pone" in btn):
             last_btn_repeat = last_btn_repeat + 1
         else:
@@ -35,6 +75,7 @@ def play(LoR, last_game_id):
             logging.warning("btn value is the same for 10 times: %s, click next", last_btn)
             LoR.click_next()
             continue
+        ############################
 
         #print("***", btn, "***")
         if "oun" in btn or "pas" in btn: #"END_ROUND" #PASS

@@ -352,6 +352,9 @@ class LoR_Handler:
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
         pyautogui.click()
 
+    def click_card(self, card):
+        self.click(self.card_handle_pos(card))
+
     def click_mulligan(self, cards):
         for card in cards:
             pos = LoR_Constants.mulligan_button_pos(card, self.Lor_app.height)
