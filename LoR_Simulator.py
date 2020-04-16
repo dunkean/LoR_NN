@@ -41,6 +41,7 @@ class Unit:
         symbol = "*" if self.dead else ""
         return symbol + str(self.atk) + "|" + str(self.hp) + "(" + ", ".join(sk[short_sk.index(c)] for c in self.skills) + ") > " + str(self.dmg)
 
+
 def solv_duel(A, B, nex_dmg = 0, onex_dmg = 0, compute_DA = True): ## atkr, blkr
     ## ATTACKER
     if B != None and not B.dead:
@@ -122,6 +123,7 @@ def evaluate_board(units, prt = False):
     if prt: print("-----------------")
     return score #* (1 + (nb / 20))
     
+
 def generate_blk_permutations(atkrs, board):
     board.extend([None for i in range(len(atkrs)+1)])
     perm = list(itertools.permutations(board, len(atkrs)))

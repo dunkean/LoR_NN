@@ -61,7 +61,7 @@ def get_my_cards():
                 my_cards.append(card)
     return my_cards
 
-def is_game_in_progress():
+def game_in_progress():
     if len(cards()) > 0:
         return True
     return False

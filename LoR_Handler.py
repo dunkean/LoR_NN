@@ -1,5 +1,4 @@
 import win32gui, win32ui, win32con, win32api
-import LoR_Queries as queries
 import subprocess
 import time
 from PIL import Image, ImageOps, ImageEnhance, ImageFilter
@@ -11,10 +10,16 @@ import random
 import LoR_Constants
 from tesserocr import PyTessBaseAPI, PSM, OEM
 from string import digits, ascii_letters
-import LoR_Brain
 import logging
 import sys
 import os
+
+
+from LoR_datamodels import CardDesc, CardInstance
+
+import LoR_Brain
+import LoR_Queries as queries
+
 
 brain = LoR_Brain.Brain()
 
@@ -84,74 +89,7 @@ class Region:
 
 
 
-class Cards:
-    hand = None
-    opp_hand = None
-    board = None
-    pit = None
-    cast = None
-    opp_pit = None
-    opp_board = None
-    
-    def __init__(self):
-        self.hand = []
-        self.opp_hand = []
-        self.board = []
-        self.pit = []
-        self.cast = []
-        self.opp_pit = []
-        self.opp_board = []
 
-    def card_to_string(self, c):
-        s = ""
-        if "cost" in c: s = s + "(" + str(c["cost"]) + ")"
-        s = s + c["name"] + ":"
-        if "real_atk" in c: s = s + str(c["real_atk"]) 
-        if "real_hp" in c: s = s + "|" + str(c["real_hp"])
-        if "attack" in c: s = s + "(" + str(c["attack"]) + "|"
-        if "health" in c: s = s + str(c["health"]) + ")"
-        return s
-
-    def to_string(self):
-        str = ""
-        if len(self.hand) > 0:
-            str += "HAND> " + " - ".join(( self.card_to_string(c)  for c in self.hand)) + "\n"
-        if len(self.board) > 0:
-            str += "BOARD> " + " - ".join((self.card_to_string(c) for c in self.board)) + "\n"
-        if len(self.pit) > 0:
-            str += "PIT> " + " - ".join((self.card_to_string(c) for c in self.pit)) + "\n"
-        if len(self.cast) > 0:
-            str += "CAST> " + " - ".join((self.card_to_string(c) for c in self.cast)) + "\n"
-        if len(self.opp_pit) > 0:
-            str += "OPP_PIT> " + " - ".join((self.card_to_string(c) for c in self.opp_pit)) + "\n"
-        if len(self.opp_board) > 0:
-            str += "OPP_BOARD> " + " - ".join((self.card_to_string(c) for c in self.opp_board)) + "\n"
-        return str
-
-class Status:
-    hp = 0
-    mana = 0
-    smana = 0
-    opp_hp = 0
-    opp_mana = 0
-    opp_smana = 0
-    atk_token = False
-    opp_atk_token = False
-
-    def __init__(self):
-        self.hp = -1
-        self.mana = -1
-        self.smana = -1
-        self.opp_hp = -1
-        self.opp_mana = -1
-        self.opp_smana = -1
-        self.atk_token = False
-        self.opp_atk_token = False
-        
-    def to_string(self):
-        return "hp:%s, mana:%s, smama:%s, token:%s | hp:%s, mana:%s, smana:%s, token:%s" %\
-                (self.hp, self.mana, self.smana, "X" if self.atk_token == True else "-", \
-                self.opp_hp, self.opp_mana, self.opp_smana, "X" if self.opp_atk_token == True else "-")
 
 class LoR_Handler:
     Lor_app = None
@@ -364,7 +302,7 @@ class LoR_Handler:
     def click_card(self, card):
         self.click(self.card_handle_pos(card))
 
-    def click_mulligan(self, cards):
+    def mulligan_cards(self, cards):
         for card in cards:
             pos = LoR_Constants.mulligan_button_pos(card, self.Lor_app.height)
             global_pos = self.posToGlobal(pos)
@@ -509,6 +447,9 @@ class LoR_Handler:
             rect = self.match_pattern_number(im, name + str(number))
             if rect != None:
                 logging.info("Pattern number %s: %i >", name, number)
+                if not os.path.isfile("tmp/" + name + str(number) + ".png"):
+                    region.img.save("tmp/" + name + str(number) + ".png")
+                    region.img.show()
                 return number
             else:
                 logging.info("Pattern number %s not detected", name)
@@ -658,7 +599,7 @@ class LoR_Handler:
             time.sleep(self.duration(sleep_duration))
 
 
-    def wait_for_image(self, btn_names, click = True, sleep_duration = 3):
+    def wait_n_click_img(self, btn_names, click = True, sleep_duration = 3):
         logging.info("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
         # print("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
         index = 0
@@ -717,13 +658,7 @@ def raw_capture():
     im.save("capture.png")
 
 def launch():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler("debug.log")
-        ]
-    )
+
 
     if win32gui.FindWindow(None, 'Legends of Runeterra') == 0:
         logging.info("Lauching LoR subprocess...")

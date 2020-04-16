@@ -6,6 +6,11 @@ import sys
 import time
 import traceback
 
+######
+import keyboard
+
+
+
 brain = LoR_Brain.Brain()
 
 
@@ -47,6 +52,7 @@ def play_unsafe(LoR, last_game_id): # no failsafe for wrong ocr
         LoR.click_next()
         game_id, won = LoR_Queries.get_last_game()
     return game_id, won
+
 
 def log(LoR, last_game_id):
     logging.info("Starting ingame loop")
@@ -176,37 +182,40 @@ def mulligan(LoR):
     logging.info("Mulligan...")
     cards = LoR_Queries.get_my_cards()
     to_mulligan = brain.mulligan(cards)
-    LoR.click_mulligan(to_mulligan)
+    LoR.mulligan_cards(to_mulligan)
     LoR.click_next()
 
 def launch_match(LoR, mode):
     logging.info("Launching match vs %s", mode)
     if mode == "bot":
-        LoR.wait_for_image(["Play", "vsAI"])
+        LoR.wait_n_click_img(["Play", "vsAI"])
     elif mode == "challenger":
-        LoR.wait_for_image(["Friends", "Spare", "Challenge"])
+        LoR.wait_n_click_img(["Friends", "Spare", "Challenge"])
     elif mode == "challenged":
-        LoR.wait_for_image(["Accept"])
+        LoR.wait_n_click_img(["Accept"])
 
 
-def loop(mode = "bot"):
+game_count = 0
+vic_count = 0
+game_session = True
+def run_bot(mode = "bot"):
     logging.info("Starting bot.")
     LoR = LoR_Handler.launch()
     logging.info("Game hooked.")
     
-    if LoR_Queries.is_game_in_progress() == False:
+    if LoR_Queries.game_in_progress() == False:
         logging.info("No game in progress.")
         launch_match(LoR, mode)
         LoR.wait_for_selection_menu()
-        LoR.wait_for_image(["Versus", "Ready"])
+        LoR.wait_n_click_img(["Versus", "Ready"])
     else:
         logging.info("Game already started.")
     
     # GAME SESSION
-    game_session = True
-    last_game_id, _ = LoR_Queries.get_last_game()
-    game_count = 1
     
+    last_game_id, _ = LoR_Queries.get_last_game()
+
+    keyboard.add_hotkey('ctrl+shift+a', print, args=('triggered', 'hotkey'))
     while game_session == True:
         print("Starting new match.")
         LoR.wait_for_game_to_start()
@@ -217,6 +226,8 @@ def loop(mode = "bot"):
             mulligan(LoR)
         try:
             game_id, won = play(LoR, last_game_id)
+            if won:
+                vic_count += 1
             # game_id, won = log(LoR, last_game_id)
         except:
             traceback.print_exc(file=sys.stdout)
@@ -229,7 +240,7 @@ def loop(mode = "bot"):
         current_time = time.strftime("%H:%M:%S", t)
         print("Game ", game_count, "finished >", "Victory" if won == True else "Defeat")
         print(current_time)
-        game_count = game_count + 1
+        game_count += 1
         time.sleep(10)
         ### RESET but should not be done if not bugged
         LoR.patterns = {}
@@ -237,15 +248,24 @@ def loop(mode = "bot"):
         LoR.reset_devices()
 
         if mode == "bot":
-            LoR.wait_for_image(["Continue", "Replay"])
+            LoR.wait_n_click_img(["Continue", "Replay"])
         else:
-            LoR.wait_for_image(["Continue", "Ready"])
+            LoR.wait_n_click_img(["Continue", "Ready"])
 
 
+
+# def main():
 if sys.argv[1] == "capture":
     LoR_Handler.raw_capture()
 else:
-    loop(sys.argv[1])
+    try:
+        run_bot(sys.argv[1])
+    except:
+        print("Games/Won: ", game_count, "/", vic_count)
+
+# if __name__ == '__main__':
+#     main()
+
 
 # def rematch(LoR, mode):
 #     LoR.exit()

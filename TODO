@@ -1,5 +1,15 @@
-OCR card texts on green red white
-Logging
-Combat simulation
-Situation evaluator
-Calibrate template match (problems at low def and limits rects)
+Features:
+*********
+Combat simulation (60%)
+Situation evaluator (30%)
+Opponent's regions match (0%)
+Ortools instead of own knapsack (50%)
+Bruteforce atk/blk (80%)
+Card cost match/ocr (0%)
+Opponent action predictor (0%)
+Clear match loop automata (0%)
+
+Bugs:
+*****
+Pattern matching on different resolutions is instable
+After multiples matches, bot stuck in continue screen, logging btn constness

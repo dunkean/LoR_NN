@@ -3,6 +3,7 @@ import random
 import logging
 import itertools
 
+
 class Brain:
     cards_dict = {}
 
@@ -29,6 +30,22 @@ class Brain:
         logging.info("---Brain mulligan decision---")
         logging.info("-".join(c["name"] for c in to_mulligan))
         return to_mulligan
+
+
+    def score_state(self, state):
+        return -1
+
+    def choose_next_action(self, state, btn):
+        if btn == "skip block":
+            attackers = state.opp_pit
+            permutations = LoR_algo.generate_blk_permutations(state)
+            best_score = float('-inf')
+            for blockers in permutations:
+                new_state = LoR_simulator.solve_fight(state)
+
+
+            #evaluate best block
+            
 
 
 
