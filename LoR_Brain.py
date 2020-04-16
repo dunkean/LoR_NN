@@ -79,23 +79,28 @@ class Brain:
         self.complete(cards.hand)
         wt = []
         val = []
+        nb_spells = 0
         for card in cards.hand:
             cost = card["cost"]
             if card["type"] == "Spell":
                 cost = max(0, cost - status.smana)
-            wt.append(cost)
+                nb_spells += 1
+            
 
             value = card["cost"]
             if card["rarity"] == "Common": value = value * 8
             elif card["rarity"] == "Rare": value = value * 9
-            elif card["rarity"] == "Epic": value = value * 11
-            elif card["rarity"] == "Champion": value = value * 13
+            elif card["rarity"] == "Epic": value = value * 12
+            elif card["rarity"] == "Champion": value = value * 14
 
             if card["type"] == "Unit": value = value * 5
-            else: value = value * 3
-            val.append(value)
+            else: value = value * 2
 
-        max_cards_cast = int(min( 6 - len(cards.board), len(cards.hand) ))
+            if len(cards.board) < 6 or card["type"] == "Spell":
+                wt.append(cost)
+                val.append(value)
+
+        max_cards_cast = int(max(nb_spells, min( 6 - len(cards.board), len(cards.hand) )))
         invokables = []
         try:
             invokables = self.knapSack  (status.mana, wt, val, max_cards_cast, cards.hand)

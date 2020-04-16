@@ -107,25 +107,25 @@ class Cards:
         if "cost" in c: s = s + "(" + str(c["cost"]) + ")"
         s = s + c["name"] + ":"
         if "real_atk" in c: s = s + str(c["real_atk"]) 
-        if "attack" in c: s = s + "(" + str(c["attack"]) + ")"
-        if "real_hp" in c: s = s + "-" + str(c["real_hp"])
-        if "health" in c: s = s + "(" + str(c["health"]) + ")"
+        if "real_hp" in c: s = s + "|" + str(c["real_hp"])
+        if "attack" in c: s = s + "(" + str(c["attack"]) + "|"
+        if "health" in c: s = s + str(c["health"]) + ")"
         return s
 
     def to_string(self):
         str = ""
         if len(self.hand) > 0:
-            str += "HAND> " + " | ".join(( self.card_to_string(c)  for c in self.hand)) + "\n"
+            str += "HAND> " + " - ".join(( self.card_to_string(c)  for c in self.hand)) + "\n"
         if len(self.board) > 0:
-            str += "BOARD> " + " | ".join((self.card_to_string(c) for c in self.board)) + "\n"
+            str += "BOARD> " + " - ".join((self.card_to_string(c) for c in self.board)) + "\n"
         if len(self.pit) > 0:
-            str += "PIT> " + " | ".join((self.card_to_string(c) for c in self.pit)) + "\n"
+            str += "PIT> " + " - ".join((self.card_to_string(c) for c in self.pit)) + "\n"
         if len(self.cast) > 0:
-            str += "CAST> " + " | ".join((self.card_to_string(c) for c in self.cast)) + "\n"
+            str += "CAST> " + " - ".join((self.card_to_string(c) for c in self.cast)) + "\n"
         if len(self.opp_pit) > 0:
-            str += "OPP_PIT> " + " | ".join((self.card_to_string(c) for c in self.opp_pit)) + "\n"
+            str += "OPP_PIT> " + " - ".join((self.card_to_string(c) for c in self.opp_pit)) + "\n"
         if len(self.opp_board) > 0:
-            str += "OPP_BOARD> " + " | ".join((self.card_to_string(c) for c in self.opp_board)) + "\n"
+            str += "OPP_BOARD> " + " - ".join((self.card_to_string(c) for c in self.opp_board)) + "\n"
         return str
 
 class Status:
@@ -185,6 +185,7 @@ class LoR_Handler:
         self.Lor_app = Region("LoR", self.desktop_img_dc)
         self.ocr_api = PyTessBaseAPI(oem = OEM.TESSERACT_ONLY)
         self.update_geometry()
+        self.register_number_patterns()
 
     def reset_devices(self):
         # self.LoR_hwnd = win32gui.FindWindow(None, 'Legends of Runeterra')
@@ -242,13 +243,21 @@ class LoR_Handler:
     
     def get_status(self):
         self.update_geometry()
+        self.register_number_patterns()
         status = Status()
-        status.hp = self.ocr_number("hp")
-        status.opp_hp = self.ocr_number("opp_hp")
-        status.mana = self.ocr_number("mana")
-        status.opp_mana = self.ocr_number("opp_mana")
-        status.smana = self.ocr_number("smana")
-        status.opp_smana = self.ocr_number("opp_smana")
+        status.hp = self.pattern_detect_number("hp")
+        status.opp_hp = self.pattern_detect_number("opp_hp")
+        status.mana = self.pattern_detect_number("mana")
+        status.opp_mana = self.pattern_detect_number("opp_mana")
+        status.smana = self.pattern_detect_number("smana")
+        status.opp_smana = self.pattern_detect_number("opp_smana")
+        # time.sleep(2)
+        # status.hp = self.ocr_number("hp")
+        # status.opp_hp = self.ocr_number("opp_hp")
+        # status.mana = self.ocr_number("mana")
+        # status.opp_mana = self.ocr_number("opp_mana")
+        # status.smana = self.ocr_number("smana")
+        # status.opp_smana = self.ocr_number("opp_smana")
         if self.detect("atk_token", LoR_Constants.atk_token_rect(self.face_card_rect
                                             , self.Lor_app.width, self.Lor_app.height)) != None:
             status.atk_token = True
@@ -379,7 +388,35 @@ class LoR_Handler:
         pyautogui.moveTo(x, y, 0.3, pyautogui.easeInQuad)
         pyautogui.dragTo(destx, desty, 0.2)
 
-    def match_pattern(self, region, name):
+
+
+    def match_pattern_number(self, im, name):
+        # im.save("Capture.png")
+        cv_im = np.array(im.convert('L'))
+        pattern_cv_img = self.patterns[name]
+        width = pattern_cv_img.shape[1]
+        height = pattern_cv_img.shape[0]
+        res = cv2.matchTemplate(cv_im, pattern_cv_img, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, max_loc = cv2.minMaxLoc(res)
+        if (max_val > 0.8):
+            logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
+            return (max_loc[0], max_loc[1], width, height)
+
+        pattern_cv_img = self.source_patterns[name]
+        logging.info("Attempting scaling for detection")
+        for i in range(-5, 5, 1):
+            scale = i/100 + self.v_scale
+            width = int(pattern_cv_img.shape[1] * scale)
+            height = int(pattern_cv_img.shape[0] * scale)
+            pattern_scaled = cv2.resize(pattern_cv_img, (width, height))
+            res = cv2.matchTemplate(cv_im, pattern_scaled, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(res)
+            if (max_val > 0.9):
+                logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
+                return (max_loc[0], max_loc[1], width, height)
+        return None
+
+    def match_pattern(self, region, name, filter = False):
         region.capture(self.mem_dc)
         if region.img == None:
             return None
@@ -405,7 +442,8 @@ class LoR_Handler:
             pattern_scaled = cv2.resize(pattern_cv_img, (width, height))
             res = cv2.matchTemplate(cv_im, pattern_scaled, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(res)
-            if (max_val > 0.7):
+            if (max_val > 0.8):
+                print("detected at another scale")
                 logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
                 return (max_loc[0], max_loc[1], width, height)
         return None
@@ -425,6 +463,60 @@ class LoR_Handler:
             pattern_cv_img = cv2.resize(pattern_cv_img, (width, height))
             self.patterns[name] = pattern_cv_img
 
+    def register_number_patterns(self):
+        for i in range(1,21):
+            self.register_pattern("hp" + str(i))
+            self.register_pattern("opp_hp" + str(i))
+        
+        for i in range(0,11):
+            self.register_pattern("mana" + str(i))
+            self.register_pattern("opp_mana" + str(i))
+        
+        for i in range(0,4):
+            self.register_pattern("smana" + str(i))
+            self.register_pattern("opp_smana" + str(i))
+        
+
+    def pattern_detect_number(self, name):
+        self.update_geometry()
+        region = None
+        if name not in self.regions and name != "":
+            rect = LoR_Constants.status_number_rect(name, self.face_card_rect, self.opp_face_card_rect, self.Lor_app.width, self.Lor_app.height)
+            rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
+            self.regions[name] = Region(name, self.desktop_img_dc, rect)
+            region = self.regions[name]
+        else:
+            region = self.regions[name]
+
+        region.capture(self.mem_dc)
+        # if "opp_smana" in name:
+        #     region.img.show()
+        if region.img == None:
+            return -1
+
+        interval = None
+        if "hp" in name:
+            interval = range(20,0,-1)
+        elif "smana" in name:
+            interval = range(0,4)
+        elif "mana" in name:
+            interval = range(10,-1,-1)
+
+        im = self.ocr_filter_img(region.img)
+        # im.show()
+        for number in interval:
+            # try:
+            rect = self.match_pattern_number(im, name + str(number))
+            if rect != None:
+                logging.info("Pattern number %s: %i >", name, number)
+                return number
+            else:
+                logging.info("Pattern number %s not detected", name)
+            # except:
+            #     print("Exception at", name + str(number))
+            #     sys.exit()
+        return -1
+
 
     def ocr_filter_img(self, im):
         if im == None:
@@ -432,9 +524,9 @@ class LoR_Handler:
         dat = im.getdata()
         f = []
         for d in dat:
-            if d[0] == 255 and d[1] == 255 and d[2] == 255: #chp catk
+            if d[0] >= 254 and d[1] >= 254 and d[2] >= 254: #chp catk
                 f.append((0,0,0))
-            elif d[0] <=2 and d[1] == 255 and d[2] <=2: #chp catk boost
+            elif d[0] <= 28 and d[1] == 255 and d[2] <= 80: #chp catk boost
                 f.append((0,0,0))
             elif d[0] == 255 and d[1] <=2 and d[2] <=2: #chp catk malus
                 f.append((0,0,0))
@@ -482,12 +574,14 @@ class LoR_Handler:
         number = self.ocr_api.GetUTF8Text().strip('\n')
         try:
             number = int(number)
-
-            # if not os.path.isfile(name + str(number) + ".png"):
-            #     region.img.save(name + str(number) + ".png")
+            
+            # if not os.path.isfile("assets/" + name + str(number) + ".png"):
+            #     region.img.save("assets/" + name + str(number) + ".png")
                 # region.img.show()
         except:
-            number = -99
+            # print(name)
+            # im.show()
+            number = -1
         
         # if number <= 20:
         #     im.save("samples/im ("+str(number)+")/" + str(self.shot_count) + ".png")
@@ -617,18 +711,19 @@ def raw_capture():
     LoR = launch()
     LoR.update_geometry()
     LoR.Lor_app.capture(LoR.mem_dc)
-    im = ImageOps.grayscale(LoR.Lor_app.img)
-    im = ImageOps.invert(im)
+    # im = ImageOps.grayscale(LoR.Lor_app.img)
+    # im = ImageOps.invert(im)
+    im = LoR.ocr_filter_img(LoR.Lor_app.img)
     im.save("capture.png")
 
 def launch():
-    # logging.basicConfig(
-    #     level=logging.INFO,
-    #     format="%(asctime)s [%(levelname)s] %(message)s",
-    #     handlers=[
-    #         logging.FileHandler("debug.log")
-    #     ]
-    # )
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            logging.FileHandler("debug.log")
+        ]
+    )
 
     if win32gui.FindWindow(None, 'Legends of Runeterra') == 0:
         logging.info("Lauching LoR subprocess...")
@@ -646,20 +741,20 @@ def launch():
     return LoR
 
 
-logger = logging.getLogger('server_logger')
-logger.setLevel(logging.INFO)
-# create file handler which logs even debug messages
-fh = logging.FileHandler('server.log')
-fh.setLevel(logging.INFO)
-# create console handler with a higher log level
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-# create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-ch.setFormatter(formatter)
-fh.setFormatter(formatter)
-# add the handlers to logger
-logger.addHandler(ch)
-logger.addHandler(fh)
-logging.getLogger().disabled = False
-# LoR_h = launch()
+# logger = logging.getLogger('server_logger')
+# logger.setLevel(logging.INFO)
+# # create file handler which logs even debug messages
+# fh = logging.FileHandler('server.log')
+# fh.setLevel(logging.INFO)
+# # create console handler with a higher log level
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.INFO)
+# # create formatter and add it to the handlers
+# formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+# ch.setFormatter(formatter)
+# fh.setFormatter(formatter)
+# # add the handlers to logger
+# logger.addHandler(ch)
+# logger.addHandler(fh)
+# logging.getLogger().disabled = False
+# # LoR_h = launch()

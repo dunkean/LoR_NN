@@ -91,8 +91,8 @@ def smana_rect(face_card, app_width, app_height):
     return (x,y,w,h)
 
 def opp_smana_rect(opp_face_card, app_width, app_height):
-    x = app_width - (opp_face_card[0] + int(0.93 * opp_face_card[2]))
-    y = int (app_height/2 - 1.5 * opp_face_card[3])
+    x = app_width - (opp_face_card[0] + int(0.92 * opp_face_card[2]))
+    y = int (app_height/2 - 1.45 * opp_face_card[3])
     w = int(0.28 * opp_face_card[2])
     h = int(0.25 * opp_face_card[3])
     return (x,y,w,h)

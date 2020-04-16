@@ -4,8 +4,10 @@ import random
 import logging
 import sys
 import time
+import traceback
 
 brain = LoR_Brain.Brain()
+
 
 
 def play_unsafe(LoR, last_game_id): # no failsafe for wrong ocr
@@ -37,14 +39,29 @@ def play_unsafe(LoR, last_game_id): # no failsafe for wrong ocr
                 LoR.drag_to_center(card)
                 time.sleep(0.2)
         elif action.type == "block":
-            for card in action.cards):
+            for card in action.cards:
                 logging.info("Blocking %s with %s", card["name"], card.target["name"])
                 LoR.drag_to_block((card, card.target))
                 time.sleep(0.5)
-        LoR.click_next()
 
+        LoR.click_next()
         game_id, won = LoR_Queries.get_last_game()
     return game_id, won
+
+def log(LoR, last_game_id):
+    logging.info("Starting ingame loop")
+    game_id, won = LoR_Queries.get_last_game()
+    while game_id == last_game_id:
+        btn = LoR.ocr_btn_txt()
+        print("Button >", btn)
+        status = LoR.get_status()
+        print(status.to_string())
+        cards = LoR.get_board_cards()
+        print(cards.to_string())
+        game_id, won = LoR_Queries.get_last_game()
+        time.sleep(5)
+    return game_id, won
+
 
 def play(LoR, last_game_id):
     logging.info("Starting ingame loop")
@@ -125,13 +142,17 @@ def play(LoR, last_game_id):
             logging.info("validate block or attack")
             LoR.click_next()
 
-        elif "ok" in btn and len(cards.cast) > 0 and cards.cast[0]["LocalPlayer"] == True: ## own cast validation Should not happen
-            logging.info("validate cast")
+        elif "ok" in btn:
+            logging.info("validate")
             LoR.click_next()
 
-        elif "ok" in btn and (len(cards.cast) == 0 or cards.cast[0]["LocalPlayer"] == True):
-            logging.info("validate invocation")
-            LoR.click_next()
+        # elif "ok" in btn and len(cards.cast) > 0 and cards.cast[0]["LocalPlayer"] == True: ## own cast validation Should not happen
+        #     logging.info("validate cast")
+        #     LoR.click_next()
+
+        # elif "ok" in btn and (len(cards.cast) == 0 or cards.cast[0]["LocalPlayer"] == True):
+        #     logging.info("validate invocation")
+        #     LoR.click_next()
 
         elif "turn" in btn or "onent" in btn or "pone" in btn:
             logging.info("opponent turn")
@@ -168,11 +189,6 @@ def launch_match(LoR, mode):
         LoR.wait_for_image(["Accept"])
 
 
-
-# def game_session():
-
-
-
 def loop(mode = "bot"):
     logging.info("Starting bot.")
     LoR = LoR_Handler.launch()
@@ -199,7 +215,13 @@ def loop(mode = "bot"):
         if LoR.detect("Mulligan") != None:
             logging.info("Mulligan detected")
             mulligan(LoR)
-        game_id, won = play(LoR, last_game_id)
+        try:
+            game_id, won = play(LoR, last_game_id)
+            # game_id, won = log(LoR, last_game_id)
+        except:
+            traceback.print_exc(file=sys.stdout)
+            game_id, won = play(LoR, last_game_id)
+            # game_id, won = log(LoR, last_game_id)
 
         ## restart
         last_game_id = game_id
