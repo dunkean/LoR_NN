@@ -10,9 +10,9 @@ def game_button_pos(face_card, app_width, app_height):
     return (x,y)
 
 def game_button_rect(face_card, app_width, app_height):
-    x = app_width - int( face_card[0] + 1.05 * face_card[2] )
+    x = app_width - int( face_card[0] + 1.15 * face_card[2] )
     y = int(app_height/2) - int(0.35 * face_card[3])
-    w = int(1.2 * face_card[2])
+    w = int(1.4 * face_card[2])
     h = int(0.7 * face_card[3])
     return (x,y,w,h)
 
@@ -84,16 +84,16 @@ def opp_mana_rect(opp_face_card, app_width, app_height):
     return (x,y,w,h)
 
 def smana_rect(face_card, app_width, app_height):
-    x = app_width - (face_card[0] + int(0.74 * face_card[2]))
+    x = app_width - (face_card[0] + int(0.93 * face_card[2]))
     y = int (app_height/2 + 1.25 * face_card[3])
-    w = int(0.25 * face_card[2])
+    w = int(0.28 * face_card[2])
     h = int(0.25 * face_card[3])
     return (x,y,w,h)
 
 def opp_smana_rect(opp_face_card, app_width, app_height):
-    x = app_width - (opp_face_card[0] + int(0.74 * opp_face_card[2]))
+    x = app_width - (opp_face_card[0] + int(0.93 * opp_face_card[2]))
     y = int (app_height/2 - 1.5 * opp_face_card[3])
-    w = int(0.25 * opp_face_card[2])
+    w = int(0.28 * opp_face_card[2])
     h = int(0.25 * opp_face_card[3])
     return (x,y,w,h)
 
