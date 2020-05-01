@@ -135,6 +135,20 @@ def launch_match(LoR, mode):
 
 # def game_session():
 
+# import subprocess
+# def relaunch(nb):
+#     count = int(nb)
+#     command = "python "
+#     for arg in sys.argv:
+#         command += arg + " "
+#     command += int(nb)
+#     print("restarted ")
+#     if(len(sys.argv) < 4):
+#         subprocess.run(command, shell=True)  
+#         print("Restart")
+#         time.sleep(0.5)
+#         print("quit")
+#         quit()
 
 
 def loop(mode = "bot"):
@@ -182,7 +196,6 @@ def loop(mode = "bot"):
             LoR.wait_for_image(["Continue", "Replay"])
         else:
             LoR.wait_for_image(["Continue", "Ready"])
-
 
 if sys.argv[1] == "capture":
     LoR_Handler.raw_capture()

@@ -17,7 +17,11 @@ class Brain:
     def complete(self, cards):
         logging.info("Adding db info to cards")
         for card in cards:
-            card.update(self.cards_dict[card["CardCode"]])
+            if card["CardCode"] in self.cards_dict:
+                card.update(self.cards_dict[card["CardCode"]])
+            else:
+                card.update(self.cards_dict["UNK"])
+
 
     def mulligan(self, cards):
         logging.info("Computing mulligan")
