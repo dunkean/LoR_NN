@@ -78,8 +78,8 @@ def play(LoR, last_game_id):
     while game_id == last_game_id:
         btn = LoR.ocr_btn_txt()
 
-        # status = LoR.get_status()
-        # print(status.to_string())
+        status = LoR.get_status()
+        print(status.to_string())
         # print("*****",btn,"******")
 
         ####### FAILSAFE #########

@@ -17,11 +17,11 @@ def game_button_rect(face_card, app_width, app_height):
     return (x,y,w,h)
 
 def card_prop_rect(card, prop, pos, app_width, app_height):
-    l = card["TopLeftX"]
-    t = app_height - card["TopLeftY"]
-    w = card["Width"]
-    h = card["Height"]
-    b = t + h
+    l = card.rect[0]
+    t = card.rect[1]
+    w = card.size[0]
+    h = card.size[1]
+    b = card.rect[3]
 
     if prop == "hp":
         if pos == "bot":
@@ -40,33 +40,36 @@ def card_prop_rect(card, prop, pos, app_width, app_height):
             return (l, t, int(h/6) , int(h/6))
 
 
-def status_number_rect(name, face_card, opp_face_card, app_width, app_height):
+def status_number_rect(name, opp, face_card, opp_face_card, app_width, app_height):
     if name == "hp":
-        return hp_rect(face_card, app_width, app_height)
-    elif name == "opp_hp":
-        return opp_hp_rect(opp_face_card, app_width, app_height)
+        if opp:
+            return opp_hp_rect(opp_face_card, app_width, app_height)
+        else:
+            return hp_rect(face_card, app_width, app_height)
     elif name == "mana":
-        return mana_rect(face_card, app_width, app_height)
-    elif name == "opp_mana":
-        return opp_mana_rect(opp_face_card, app_width, app_height)
+        if opp:
+            return opp_mana_rect(opp_face_card, app_width, app_height)
+        else:
+            return mana_rect(face_card, app_width, app_height)
     elif name == "smana":
-        return smana_rect(face_card, app_width, app_height)
-    elif name == "opp_smana":
-         return opp_smana_rect(opp_face_card, app_width, app_height)
+        if opp:
+            return opp_smana_rect(opp_face_card, app_width, app_height)
+        else:
+            return smana_rect(face_card, app_width, app_height)
 
 def hp_rect(face_card, app_width, app_height):
     #print(face_card)
     x = face_card[0] + int(0.9 * face_card[2])
     y = face_card[1] + int(0.2 * face_card[3])
     w = int(0.5 * face_card[2])
-    h = int(0.8 * face_card[3])
+    h = int(0.6 * face_card[3])
     return (x,y,w,h) 
 
 def opp_hp_rect(opp_face_card, app_width, app_height):
     x = opp_face_card[0] + int(0.92 * opp_face_card[2])
     y = opp_face_card[1] + int(0.2 * opp_face_card[3])
     w = int(0.5 * opp_face_card[2])
-    h = int(0.8 * opp_face_card[3])
+    h = int(0.6 * opp_face_card[3])
     return (x,y,w,h) 
 
 def mana_rect(face_card, app_width, app_height):
