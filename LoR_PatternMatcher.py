@@ -2,7 +2,7 @@ import logging
 import numpy as np
 from PIL import Image, ImageOps
 import cv2
-
+import imutils
 
 class Matcher:
     scaled_patterns = {}
@@ -26,7 +26,7 @@ class Matcher:
             pattern_cv_img = self.source_patterns[name]
             width = int(pattern_cv_img.shape[1] * self.v_scale)
             height = int(pattern_cv_img.shape[0] * self.v_scale)
-            pattern_cv_img = cv2.resize(pattern_cv_img, (width, height))
+            # pattern_cv_img = cv2.resize(pattern_cv_img, (width, height))
             if canny:
                 pattern_cv_img = cv2.Canny(pattern_cv_img, 50, 200)
             self.scaled_patterns[name] = pattern_cv_img
@@ -37,48 +37,62 @@ class Matcher:
             self.register_pattern(btn)
     
     def register_number_patterns(self):
-        # for i in range(1,21):
-        #     self.register_pattern("hp" + str(i))
+        for i in range(0,10):
+            self.register_pattern("hp" + str(i), True)
         
         for i in range(0,11):
             self.register_pattern("mana" + str(i), True)
         
-        # for i in range(0,4):
-        #     self.register_pattern("smana" + str(i))
+        for i in range(0,4):
+            self.register_pattern("smana" + str(i), True)
 
    
-    def pattern_detect_number(self, img, name):
+    def pattern_detect_number(self, img, name, double_digit = False):
         interval = None
+        precision = 0.7
         if "hp" in name:
-            interval = range(20,0,-1)
+            interval = range(9,-1,-1)
+            precision = 0.6
         elif "smana" in name:
             interval = range(0,4)
+            precision = 0.8
         elif "mana" in name:
             interval = range(10,-1,-1)
+            precision = 0.7
 
+        img = np.array(img.convert('L'))
+        scale = 1/self.v_scale
+        img = imutils.resize(img, width = int(img.shape[1] * scale))
+        edged = cv2.Canny(img, 50, 200)
+
+        result = []
         for number in interval:
-            found = self.match_number(img, self.scaled_patterns[name + str(number)])
+            found, locs = self.match_number(edged, self.scaled_patterns[name + str(number)], precision)
             if found:
-                print("Found", number)
-                return number
-            else:
-                logging.info("Pattern number %s not detected", name)
+                if double_digit:
+                    for loc in locs:
+                        result.append((loc, number))
+                else:
+                    return number
+
+        if double_digit and len(result) > 0:
+            result.sort()
+            str_number = ''.join([str(c[1]) for c in result])
+            return int(str_number)
         return -1
 
+    def match_number(self, edged, template, precision):
+        result = cv2.matchTemplate(edged, template, cv2.TM_CCOEFF_NORMED)
+        (_, maxVal, _, max_loc) = cv2.minMaxLoc(result)
+        match_locations = np.where(result>precision)
+        xs = []
+        for pt in zip(*match_locations[::-1]):
+            if pt[0] not in xs:
+                xs.append(pt[0])
 
-    def match_number(self, gray, template):
-        edged = cv2.Canny(np.array(gray.convert('L')), 50, 200)
-        result = cv2.matchTemplate(edged, template, cv2.TM_SQDIFF_NORMED)
-        (_, maxVal, _, _) = cv2.minMaxLoc(result)
-        match_locations = np.where(result<=0.9)
-        if len(match_locations) > 0 :
-            # cv2.imshow("Visualize", edged)
-            # cv2.imshow("Visualize", template)
-            # cv2.waitKey(0)
-            return True
-        return False
-
-
+        if maxVal > precision :
+            return True, xs
+        return False, (-1,-1)
 
     
 

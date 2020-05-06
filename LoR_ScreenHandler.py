@@ -247,11 +247,11 @@ class LoR_Handler:
 
         src = region.img.copy()
         number = self.OCR.ocr_number(region.img)
-        if not os.path.isfile("capture/" + name + str(number) + ".png"):
-            src.save("capture/" + name + str(number) + ".png")
+        if not os.path.isfile("capture/" + region_name + str(number) + ".png"):
+            src.save("capture/" + region_name + str(number) + ".png")
         return number
     
-    def pattern_pos_number(self, name, opp):
+    def pattern_pos_number(self, name, opp, double_digit = False):
         region = None
         region_name = ("opp_" if opp else "") + name
         if region_name not in self.regions and region_name != "":
@@ -265,8 +265,8 @@ class LoR_Handler:
         region.capture(self.mem_dc)
         if region.img == None:
             return -1
-        
-        return self.matcher.pattern_detect_number(region.img, name)
+
+        return self.matcher.pattern_detect_number(region.img, name, double_digit)
 
 
     def get_board_cards(self, state):
@@ -309,19 +309,24 @@ class LoR_Handler:
                 state.player.army.hand.append(card)
 
     def update_status(self, state):
-        # status.hp = self.pattern_detect_number("hp")
-        # status.opp_hp = self.pattern_detect_number("opp_hp")
         state.player.mana = self.pattern_pos_number("mana", False)
         state.opponent.mana = self.pattern_pos_number("mana", True)
+        state.player.smana = self.pattern_pos_number("smana", False)
+        state.opponent.smana = self.pattern_pos_number("smana", True)
+        state.player.hp = self.pattern_pos_number("hp", False, True)
+        state.opponent.hp = self.pattern_pos_number("hp", True, True)
+        # status.hp = self.pattern_detect_number("hp")
+        # status.opp_hp = self.pattern_detect_number("opp_hp")
+
         # status.smana = self.pattern_detect_number("smana")
         # status.opp_smana = self.pattern_detect_number("opp_smana")
         # time.sleep(2)
-        state.player.hp = self.ocr_pos_number("hp", False)
-        state.opponent.hp = self.ocr_pos_number("hp", True)
-        # state.player.mana = self.ocr_pos_number("mana")
-        # state.opponent.mana = self.ocr_pos_number("opp_mana")
-        state.player.smana = self.ocr_pos_number("smana", False)
-        state.opponent.smana = self.ocr_pos_number("smana", True)
+        # state.player.hp = self.ocr_pos_number("hp", False)
+        # state.opponent.hp = self.ocr_pos_number("hp", True)
+        # state.player.mana = self.ocr_pos_number("mana", False)
+        # state.opponent.mana = self.ocr_pos_number("mana", True)
+        # state.player.smana = self.ocr_pos_number("smana", False)
+        # state.opponent.smana = self.ocr_pos_number("smana", True)
 
         # if self.detect("atk_token", LoR_Constants.atk_token_rect(self.face_card_rect
         #                                     , self.Lor_app.width, self.Lor_app.height)) != None:

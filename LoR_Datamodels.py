@@ -27,15 +27,16 @@ class Database:
     def load_db(self):
         with open('set1-en_us.json', encoding="utf8") as json_file:
             for data in json.load(json_file):
-                # card = CardDesc.from_json(data)
                 self.code_dict[data["cardCode"]] = data
-                # self.name_dict[card.name] = data
+        with open('set2-en_us.json', encoding="utf8") as json_file:
+            for data in json.load(json_file):
+                self.code_dict[data["cardCode"]] = data
 
     def card(self, code):
         if code in self.code_dict:
             return self.code_dict[code]
-        else:
-            return self.code_dict["UNK"]
+        # else:
+        #     return self.code_dict["UNK"]
 
 
 DB = Database()

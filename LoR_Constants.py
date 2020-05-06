@@ -80,9 +80,9 @@ def mana_rect(face_card, app_width, app_height):
     return (x,y,w,h)
 
 def opp_mana_rect(opp_face_card, app_width, app_height):
-    x = app_width - (opp_face_card[0] + int(1.3 * opp_face_card[2]))
+    x = app_width - (opp_face_card[0] + int(1.4 * opp_face_card[2]))
     y = int (app_height/2 - 1.2 * opp_face_card[3])
-    w = int(0.41 * opp_face_card[2])
+    w = int(0.51 * opp_face_card[2])
     h = int(0.36 * opp_face_card[3])
     return (x,y,w,h)
 
@@ -95,9 +95,9 @@ def smana_rect(face_card, app_width, app_height):
 
 def opp_smana_rect(opp_face_card, app_width, app_height):
     x = app_width - (opp_face_card[0] + int(0.92 * opp_face_card[2]))
-    y = int (app_height/2 - 1.45 * opp_face_card[3])
+    y = int (app_height/2 - 1.49 * opp_face_card[3])
     w = int(0.28 * opp_face_card[2])
-    h = int(0.25 * opp_face_card[3])
+    h = int(0.28 * opp_face_card[3])
     return (x,y,w,h)
 
 def atk_token_rect(face_card, app_width, app_height):
