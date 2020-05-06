@@ -25,15 +25,15 @@ def card_prop_rect(card, prop, pos, app_width, app_height):
 
     if prop == "hp":
         if pos == "bot":
-            return (l+int(w/2+h/20) , b-int(h/4) , int(h/4) , int(6.5*h/30))
+            return (l+int(w/2+h/20) , b-int(h/4) , int(h/3) , int(6.5*h/30))
         else:
-            return (l+int(w/2+h/20) ,  t+int(h/20) , int(h/4) , int(h/5))
+            return (l+int(w/2+h/20) ,  t+int(h/20) , int(h/3) , int(h/5))
     elif prop == "atk":
         if pos == "bot":
-            return (l+int(w/2-h/4) , b-int(h/4) , int(h/4) , int(6.5*h/30))
+            return (l+int(w/2-h/3) , b-int(h/4) , int(h/3) , int(6*h/30))
         else:
-            return (l+int(w/2-h/4) , t+int(h/20) , int(h/4) , int(h/5))
-    elif prop == "atk":
+            return (l+int(w/2-h/3) , t+int(h/20) , int(h/3) , int(h/5))
+    elif prop == "cost":
         if pos == "bot": ## should not happen
             return (0,0,0,0)
         else:

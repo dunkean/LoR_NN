@@ -60,7 +60,7 @@ class CardRegion(IntEnum, metaclass=DefaultEnumMeta):
     ShadowIsles = 4
     Freljord = 5
     PiltoverZaun = 6
-    BildgeWater = 7
+    Bilgewater = 7
 
 class CardRarity(IntEnum, metaclass=DefaultEnumMeta):
     Unknown = 0
@@ -172,7 +172,10 @@ class Card(CardDesc):
         self.center = center
     
     def to_str(self):
-        return self.name + "(" + str(self.atk) + "-" + str(self.hp) + ")"
+        if self.cost == -1:
+            return self.name + "(" + str(self.atk) + ":" + str(self.hp) + ")"
+        else:
+            return "(" + str(self.cost) + ")" + self.name
 
 
 ################################################################################################################################
@@ -188,7 +191,7 @@ class Stage(IntEnum, metaclass=DefaultEnumMeta):
 class TokenType(IntEnum, metaclass=DefaultEnumMeta):
     Stateless = 0
     Attack = 1
-    Attacked = 2
+    Round = 2
     Scout = 3
 
 @dataclass
@@ -206,8 +209,12 @@ class Army:
 
     def to_str(self):
         res = ""
-        # if len(self.hand) > 0:
-        #     res += "HAND> " + " - ".join(( c.to_str() for c in self.hand)) + "\n"
+        self.hand.sort(key=lambda x: x.rect[0])
+        self.deployed.sort(key=lambda x: x.rect[0])
+        self.pit.sort(key=lambda x: x.rect[0])
+        
+        if len(self.hand) > 0:
+            res += "HAND> " + " - ".join(( c.to_str() for c in self.hand)) + "\n"
         if len(self.deployed) > 0:
             res += "DEPLOYED> " + " - ".join(( c.to_str() for c in self.deployed)) + "\n"
         if len(self.pit) > 0:
@@ -229,7 +236,7 @@ class Player:
         self.army = Army()
 
     def to_str(self):
-        return str(self.hp) + "(" + str(self.mana) + "," + str(self.smana) + ")"
+        return str(self.hp) + "(" + str(self.mana) + "," + str(self.smana) + ")" + ("*" if self.token == TokenType.Attack else "")
 
 
 @dataclass

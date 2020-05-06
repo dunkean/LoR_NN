@@ -14,7 +14,7 @@ import sys
 import os
 import LoR_Datamodels
 
-from LoR_Datamodels import CardDesc, Card, Stage, State, CardType
+from LoR_Datamodels import CardDesc, Card, Stage, State, CardType, TokenType
 
 import LoR_Brain
 import LoR_ServerHandler as queries
@@ -195,7 +195,7 @@ class LoR_Handler:
         self.update_geometry()
         state = State()
         btn = self.wait_for_btn()
-        time.sleep(0.5)
+        time.sleep(1)
         ### Status ###
         self.update_status(state)
         ### Cards ###
@@ -268,6 +268,18 @@ class LoR_Handler:
 
         return self.matcher.pattern_detect_number(region.img, name, double_digit)
 
+    def pattern_card_number(self, card, name, pos):
+        rect = LoR_Constants.card_prop_rect(card, name, pos, self.Lor_app.width, self.Lor_app.height)
+        rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
+        region = Region(name, self.desktop_img_dc, rect)
+        region.capture(self.mem_dc)
+        if region.img == None:
+            return -1
+
+        if name == "cost":
+            return self.matcher.pattern_detect_number(region.img, "cost")
+        else:
+            return self.matcher.pattern_detect_number(region.img, "unit", True)
 
     def get_board_cards(self, state):
         logging.info("Computing card repartition on board")
@@ -285,28 +297,30 @@ class LoR_Handler:
 
             if y < 0: 
                 state.opponent.army.hand.append(card)
-                # card["real_cost"] = self.ocr_number(card, "cost", "top") ##@TODO if card readable update cost
             elif y < step: 
                 state.opponent.army.deployed.append(card)
-                card.hp = self.ocr_card_number(card, "hp", "bot")
-                card.atk = self.ocr_card_number(card, "atk", "bot")
+                card.hp = self.pattern_card_number(card, "hp", "bot")
+                card.atk = self.pattern_card_number(card, "atk", "bot")
             elif y < 2*step: 
                 state.opponent.army.pit.append(card)
-                card.hp = self.ocr_card_number(card, "hp", "bot")
-                card.atk = self.ocr_card_number(card, "atk", "bot")
+                card.hp = self.pattern_card_number(card, "hp", "bot")
+                card.atk = self.pattern_card_number(card, "atk", "bot")
             elif y < 3*step: 
                 state.spell_arena.append(card)
             elif y < 4*step: 
                 state.player.army.pit.append(card)
                 if card.type == CardType.Unit:
-                    card.hp = self.ocr_card_number(card, "hp", "top")
-                    card.atk = self.ocr_card_number(card, "atk", "top")
+                    card.hp = self.pattern_card_number(card, "hp", "top")
+                    card.atk = self.pattern_card_number(card, "atk", "top")
             elif y < 5*step: 
                 state.player.army.deployed.append(card)
-                card.hp = self.ocr_card_number(card, "hp", "top")
-                card.atk = self.ocr_card_number(card, "atk", "top")
+                card.hp = self.pattern_card_number(card, "hp", "top")
+                card.atk = self.pattern_card_number(card, "atk", "top")
             else: 
                 state.player.army.hand.append(card)
+                # print("Append", card.name)
+                # card.cost = self.ocr_card_number(card, "cost", "top") ##@TODO if card readable update cost
+                card.cost = self.pattern_card_number(card, "cost", "top")
 
     def update_status(self, state):
         state.player.mana = self.pattern_pos_number("mana", False)
@@ -315,35 +329,20 @@ class LoR_Handler:
         state.opponent.smana = self.pattern_pos_number("smana", True)
         state.player.hp = self.pattern_pos_number("hp", False, True)
         state.opponent.hp = self.pattern_pos_number("hp", True, True)
-        # status.hp = self.pattern_detect_number("hp")
-        # status.opp_hp = self.pattern_detect_number("opp_hp")
 
-        # status.smana = self.pattern_detect_number("smana")
-        # status.opp_smana = self.pattern_detect_number("opp_smana")
-        # time.sleep(2)
-        # state.player.hp = self.ocr_pos_number("hp", False)
-        # state.opponent.hp = self.ocr_pos_number("hp", True)
-        # state.player.mana = self.ocr_pos_number("mana", False)
-        # state.opponent.mana = self.ocr_pos_number("mana", True)
-        # state.player.smana = self.ocr_pos_number("smana", False)
-        # state.opponent.smana = self.ocr_pos_number("smana", True)
+        if self.detect("atk_token", LoR_Constants.atk_token_rect(self.face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None:
+            state.player.token = TokenType.Attack
+        else:
+            state.player.token = TokenType.Stateless
 
-        # if self.detect("atk_token", LoR_Constants.atk_token_rect(self.face_card_rect
-        #                                     , self.Lor_app.width, self.Lor_app.height)) != None:
-        #     status.atk_token = True
-        # else:
-        #     status.atk_token = False
-
-        # if self.detect("opp_atk_token", LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
-        #                                     , self.Lor_app.width, self.Lor_app.height)) != None:
-        #     status.opp_atk_token = True
-        # else:
-        #     status.opp_atk_token = False
+        if self.detect("opp_atk_token", LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None:
+            state.opponent.token = TokenType.Attack
+        else:
+            state.opponent.token = TokenType.Stateless
         
-        # logging.info("OCR status: %s", status.to_string())
-
-        # return status
-
+        logging.info("OCR status: %s", state.to_str())
 
 
     def wait_for_selection_menu(self, sleep_duration = 1): ## generic query

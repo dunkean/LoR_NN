@@ -73,7 +73,7 @@ class Bot:
         state = self.LoR.wait_for_next_state()
         
         print(state.to_str())
-        time.sleep(1)
+        # time.sleep(1)
 
         # if state.turn == 
         # action = self.brain.choose_next_action(state)
