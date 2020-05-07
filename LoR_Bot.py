@@ -8,7 +8,7 @@ from LoR_ScreenHandler import LoR_Handler
 import LoR_ServerHandler as Server
 import LoR_func
 import LoR_Brain, LoR_Datamodels
-
+from LoR_Datamodels import Stage
 
 class Bot:
     game_count = 0
@@ -70,12 +70,43 @@ class Bot:
     
 
     def play_game(self): # no failsafe for wrong ocr
+        if not self.bot_active:
+            return
         state = self.LoR.wait_for_next_state()
         
         print(state.to_str())
-        # time.sleep(1)
+        while not state.is_valid():
+            state = self.LoR.wait_for_next_state()
+        
+        actions = brain.get_next_actions()
 
-        # if state.turn == 
+        ## attack, block
+
+        for action in actions:
+            if action == Action.Cast:
+                self.LoR.drag_to_center(action.card)
+                for target in action.targets:
+                    self.LoR.click_card(target)
+            elif action == Action.Block:
+                self.LoR.drag_to_card((action.card, action.target))
+            elif action == Action.Attack:
+                self.LoR.drag_to_center(action.card)
+                for target in action.targets:
+                    self.LoR.drag_to_card((action.target, action.card))
+
+
+
+        if state.stage == Stage.Block:
+            actions = brain.get_block(state)
+            pass
+        elif state.stage == Stage.Counter:
+            actions = brain.get_block(state)
+            pass
+        elif state.stage == Stage.Play:
+            pass
+        else:
+            pass
+
         # action = self.brain.choose_next_action(state)
         # btn = LoR.ocr_btn_txt() #replace with pattern matching
         # if not_my_turn():
