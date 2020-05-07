@@ -4,6 +4,8 @@ from PIL import Image, ImageOps
 import cv2
 import imutils
 
+### barrier pixel leftx/centery = 255 242 90
+
 class Matcher:
     scaled_patterns = {}
     source_patterns = {}
@@ -36,7 +38,7 @@ class Matcher:
         for btn in list_btn:
             self.register_pattern(btn)
 
-        list_objects = ["atk_token", "opp_atk_token"]
+        list_objects = ["token_attack", "token_opp_attack", "token_scout", "token_opp_scout", "token_round", "token_opp_round"]
         for obj in list_objects:
             self.register_pattern(obj)
     
@@ -162,8 +164,6 @@ class Matcher:
         (_, maxVal, _, max_loc) = cv2.minMaxLoc(result)
         match_locations = np.where(result>precision)
         
-        
-        
         detected = []
         for i in range(len(match_locations[0])):
             x = match_locations[0][i]
@@ -203,6 +203,11 @@ class Matcher:
         return False, (-1,-1)
 
     
+    def pattern_detect_skills(self, im):
+        # img = self.ocr_filter_img(img)
+        # img = np.array(img.convert('L'))
+        return []
+
 
     # def match_pattern_number(self, im, name):
     #     # im.save("Capture.png")
@@ -233,7 +238,8 @@ class Matcher:
     def match_pattern(self, img, name):
         im = ImageOps.grayscale(img)
         im = ImageOps.invert(im)
-        # im.save("Capture.png")
+        if "token_round" in name:
+            im.save("Capture.png")
         cv_im = np.array(im.convert('L'))
         pattern_cv_img = self.scaled_patterns[name]
         width = pattern_cv_img.shape[1]
@@ -254,7 +260,6 @@ class Matcher:
             res = cv2.matchTemplate(cv_im, pattern_scaled, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(res)
             if (max_val > 0.8):
-                print("detected at another scale")
                 logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
                 return (max_loc[0], max_loc[1], width, height)
         return None

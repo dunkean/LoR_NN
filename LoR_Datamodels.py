@@ -78,28 +78,43 @@ class SpellSpeed(IntEnum, metaclass=DefaultEnumMeta):
     NA = 4
 
 class Skill(IntEnum, metaclass=DefaultEnumMeta):
-    Unknown = 0
-    Burst = 1
-    QuickStrike = 2
-    Overwhelm = 3
-    Elusive = 4
-    Fast = 5
-    Skill = 6
-    Imbue = 7
-    Slow = 8
-    Challenger = 9
-    Regeneration = 10
-    LastBreath = 11
-    Lifesteal = 12
-    Tough = 13
-    Barrier = 14
+    Attack = 1
+    Attune = 2
+    Barrier = 3
+    Burst = 4
+    CantBlock = 5
+    Capture = 6
+    Challenger = 7
+    DoubleStrike = 8
+    Drain = 9
+    Elusive = 10
+    Enlightened = 11
+    Ephemeral = 12
+    Fast = 13
+    Fearsome = 14
     Fleeting = 15
-    Fearsome = 16
-    CantBlock = 17
-    DoubleStrike = 18
-    Ephemeral = 19
-    SpellOverwhelm = 20
-    Autoplay = 21
+    Frostbite = 16
+    Imbue = 17
+    Immobile = 18
+    LastBreath = 19
+    Lifesteal = 20
+    Obliterate = 21
+    Overwhelm = 22
+    Play = 23
+    QuickStrike = 24
+    Recall = 25
+    Regeneration = 26
+    Scout = 27
+    Skill = 28
+    Slow = 29
+    Stun = 30
+    Tough = 31
+    Trap = 32
+    Vulnerable = 33
+    Weakest = 34
+    SpellOverwhelm = 35
+    Autoplay = 36
+
 
 class SubType(IntEnum, metaclass=DefaultEnumMeta):
     Unknown = 0
@@ -162,6 +177,7 @@ class Card(CardDesc):
     cost: int = -1
     atk: int = 0
     hp: int = 0
+    detected_skills: List[Skill] = field(default_factory=list)
 
     def from_json(self, data, rect, size, center):
         self.id = data["CardID"]
@@ -236,7 +252,7 @@ class Player:
         self.army = Army()
 
     def to_str(self):
-        return str(self.hp) + "(" + str(self.mana) + "," + str(self.smana) + ")" + ("*" if self.token == TokenType.Attack else "")
+        return str(self.hp) + "(" + str(self.mana) + "," + str(self.smana) + ")" + ":" + str(self.token)
 
 
 @dataclass

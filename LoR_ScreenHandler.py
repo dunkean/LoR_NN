@@ -225,8 +225,8 @@ class LoR_Handler:
 
         src = region.img.copy()
         number = self.OCR.ocr_number(region.img)
-        if not os.path.isfile("capture/" + name + str(number) + ".png"):
-            src.save("capture/" + name + str(number) + ".png")
+        # if not os.path.isfile("capture/" + name + str(number) + ".png"):
+        #     src.save("capture/" + name + str(number) + ".png")
         return number
 
     def ocr_pos_number(self, name, opp):
@@ -247,8 +247,8 @@ class LoR_Handler:
 
         src = region.img.copy()
         number = self.OCR.ocr_number(region.img)
-        if not os.path.isfile("capture/" + region_name + str(number) + ".png"):
-            src.save("capture/" + region_name + str(number) + ".png")
+        # if not os.path.isfile("capture/" + region_name + str(number) + ".png"):
+        #     src.save("capture/" + region_name + str(number) + ".png")
         return number
     
     def pattern_pos_number(self, name, opp, double_digit = False):
@@ -268,6 +268,16 @@ class LoR_Handler:
 
         return self.matcher.pattern_detect_number(region.img, name, double_digit)
 
+    def pattern_card_skills(self, card, pos):
+        rect = LoR_Constants.card_prop_rect(card, "skills", pos, self.Lor_app.width, self.Lor_app.height)
+        rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
+        region = Region(name, self.desktop_img_dc, rect)
+        region.capture(self.mem_dc)
+        if region.img == None:
+            return -1
+
+        return self.matcher.pattern_detect_skills(region.img)
+        
     def pattern_card_number(self, card, name, pos):
         rect = LoR_Constants.card_prop_rect(card, name, pos, self.Lor_app.width, self.Lor_app.height)
         rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
@@ -301,10 +311,12 @@ class LoR_Handler:
                 state.opponent.army.deployed.append(card)
                 card.hp = self.pattern_card_number(card, "hp", "bot")
                 card.atk = self.pattern_card_number(card, "atk", "bot")
+                # card.detected_skills
             elif y < 2*step: 
                 state.opponent.army.pit.append(card)
                 card.hp = self.pattern_card_number(card, "hp", "bot")
                 card.atk = self.pattern_card_number(card, "atk", "bot")
+                # card.detected_skills
             elif y < 3*step: 
                 state.spell_arena.append(card)
             elif y < 4*step: 
@@ -312,15 +324,16 @@ class LoR_Handler:
                 if card.type == CardType.Unit:
                     card.hp = self.pattern_card_number(card, "hp", "top")
                     card.atk = self.pattern_card_number(card, "atk", "top")
+                    # card.detected_skills
             elif y < 5*step: 
                 state.player.army.deployed.append(card)
                 card.hp = self.pattern_card_number(card, "hp", "top")
                 card.atk = self.pattern_card_number(card, "atk", "top")
+                # card.detected_skills
             else: 
                 state.player.army.hand.append(card)
-                # print("Append", card.name)
-                # card.cost = self.ocr_card_number(card, "cost", "top") ##@TODO if card readable update cost
                 card.cost = self.pattern_card_number(card, "cost", "top")
+
 
     def update_status(self, state):
         state.player.mana = self.pattern_pos_number("mana", False)
@@ -330,15 +343,27 @@ class LoR_Handler:
         state.player.hp = self.pattern_pos_number("hp", False, True)
         state.opponent.hp = self.pattern_pos_number("hp", True, True)
 
-        if self.detect("atk_token", LoR_Constants.atk_token_rect(self.face_card_rect
+        if self.detect("token_attack", LoR_Constants.atk_token_rect(self.face_card_rect
                                             , self.Lor_app.width, self.Lor_app.height)) != None:
             state.player.token = TokenType.Attack
+        elif self.detect("token_scout", LoR_Constants.scout_token_rect(self.face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None:
+            state.player.token = TokenType.Scout
+        elif self.detect("token_round", LoR_Constants.atk_token_rect(self.face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None:
+            state.player.token = TokenType.Round
         else:
             state.player.token = TokenType.Stateless
 
-        if self.detect("opp_atk_token", LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
+        if self.detect("token_opp_attack", LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
                                             , self.Lor_app.width, self.Lor_app.height)) != None:
             state.opponent.token = TokenType.Attack
+        elif self.detect("token_opp_scout", LoR_Constants.opp_scout_token_rect(self.opp_face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None:
+            state.opponent.token = TokenType.Scout
+        elif self.detect("token_opp_round", LoR_Constants.opp_atk_token_rect(self.opp_face_card_rect
+                                            , self.Lor_app.width, self.Lor_app.height)) != None:
+            state.opponent.token = TokenType.Round
         else:
             state.opponent.token = TokenType.Stateless
         
@@ -438,6 +463,8 @@ class LoR_Handler:
         source.capture(self.mem_dc)
         if source.img == None:
             return None
+        # if name == "token_scout":
+        #     source.img.show()
         rect = self.matcher.match_pattern(source.img, name)
 
         if rect == None and name in self.regions and src_rect == None:

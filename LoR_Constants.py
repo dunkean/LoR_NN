@@ -38,6 +38,11 @@ def card_prop_rect(card, prop, pos, app_width, app_height):
             return (0,0,0,0)
         else:
             return (l, t, int(h/6) , int(h/6))
+    elif prop == "skills":
+        if pos == "bot":
+            return (l+int(w/2-h/3) , b-int(h/4), int(h) , int(6*h/30))
+        else:
+            return (l+int(w/2-h/2) , b-int(h/4) , int(h) , int(6*h/30))
 
 
 def status_number_rect(name, opp, face_card, opp_face_card, app_width, app_height):
@@ -107,9 +112,23 @@ def atk_token_rect(face_card, app_width, app_height):
     h = int(0.8 * face_card[3])
     return (x,y,w,h)
 
+def scout_token_rect(face_card, app_width, app_height):
+    x = app_width - (face_card[0] + int(1.5 * face_card[2]))
+    y = int (app_height/2 + 1.45 * face_card[3])
+    w = int(0.8 * face_card[2])
+    h = int(1.8 * face_card[3])
+    return (x,y,w,h)
+
 def opp_atk_token_rect(opp_face_card, app_width, app_height):
     x = app_width - (opp_face_card[0] + int(1.5 * opp_face_card[2]))
     y = int (app_height/2 - 2.2 * opp_face_card[3])
     w = int(0.8 * opp_face_card[2])
     h = int(0.8 * opp_face_card[3])
+    return (x,y,w,h)
+
+def opp_scout_token_rect(opp_face_card, app_width, app_height):
+    x = app_width - (opp_face_card[0] + int(1.5 * opp_face_card[2]))
+    y = int (app_height/2 - 2.2 * opp_face_card[3])
+    w = int(0.8 * opp_face_card[2])
+    h = int(1.8 * opp_face_card[3])
     return (x,y,w,h)
