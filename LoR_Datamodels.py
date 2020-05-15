@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Tuple, Type
 from enum import EnumMeta, IntEnum
 import json
-
+from lor_deckcodes import LoRDeck, CardCodeAndCount
 
 class DefaultEnumMeta(EnumMeta): ### implements default value as the first
     default = object()
@@ -38,6 +38,16 @@ class Database:
         # else:
         #     return self.code_dict["UNK"]
 
+    def get_deck(self, deck_code):
+        deck = []
+        lor_deck = LoRDeck.from_deckcode(deck_code)
+        for c in list(lor_deck):
+            [nb, code] = c.split(":")
+            for _ in range(int(nb)):
+                card_desc = CardDesc()
+                card_desc.from_json(code)
+                deck.append(card_desc)
+        return deck
 
 DB = Database()
 
@@ -174,9 +184,9 @@ class Card(CardDesc):
     rect: Tuple[int,int,int,int] = (0,0,0,0)
     size: Tuple[int,int] = (0,0)
     center: Tuple[int,int] = (0,0)
-    cost: int = -1
-    atk: int = 0
-    hp: int = 0
+    _cost: int = -1
+    _atk: int = 0
+    _hp: int = 0
     detected_skills: List[Skill] = field(default_factory=list)
 
     def from_json(self, data, rect, size, center):
@@ -189,10 +199,33 @@ class Card(CardDesc):
     
     def to_str(self):
         if self.cost == -1:
-            return self.name + "(" + str(self.atk) + ":" + str(self.hp) + ")"
+            return self.name + "(" + str(self._atk) + ":" + str(self._hp) + ")"
         else:
-            return "(" + str(self.cost) + ")" + self.name
+            return "(" + str(self._cost) + ")" + self.name
 
+    def width(self):
+        return self.size[0]
+
+    def height(self):
+        return self.size[1]
+
+    def atk(self):
+        if self._atk == -1:
+            return super().base_attack
+        return self._atk
+    
+    def hp(self):
+        if self._hp == -1:
+            return super().base_hp
+        return self._hp
+
+    def cost(self):
+        if self._cost == -1:
+            return super().base_cost
+        return self._cost
+
+    def is_valid(self):
+        return not self._atk == -1 and not self._hp == -1
 
 ################################################################################################################################
 ################################################              BOARD                 ############################################
@@ -203,6 +236,7 @@ class Stage(IntEnum, metaclass=DefaultEnumMeta):
     Block = 2
     Cast = 3
     Counter = 4
+    Unknown = 5
 
 class TokenType(IntEnum, metaclass=DefaultEnumMeta):
     Stateless = 0
@@ -237,6 +271,18 @@ class Army:
             res += "PIT> " + " - ".join(( c.to_str() for c in self.pit)) + "\n"
         return res
 
+    def is_valid(self):
+        for card in self.hand:
+            if not card.is_valid():
+                return False
+        for card in self.deployed:
+            if not card.is_valid():
+                return False
+        for card in self.pit:
+            if not card.is_valid():
+                return False
+        
+        return True
 
 @dataclass
 class Player:
@@ -253,6 +299,9 @@ class Player:
 
     def to_str(self):
         return str(self.hp) + "(" + str(self.mana) + "," + str(self.smana) + ")" + ":" + str(self.token)
+    
+    def is_valid(self):
+        return not self.hp == -1 and not self.mana == -1 and not self.smana == -1 and self.army.is_valid()
 
 
 @dataclass
@@ -274,6 +323,28 @@ class State:
         res += self.player.army.to_str()
         res += self.opponent.army.to_str()
         return res
+
+    def is_valid(self):
+        return self.player.is_valid() and self.opponent.is_valid()
+
+
+
+class ActionType(IntEnum, metaclass=DefaultEnumMeta):
+    Unknown = 0
+    Cast = 1
+    Block = 2
+    Attack = 3
+    Pass = 4
+
+
+
+
+
+
+
+
+
+
 
 # class State:
 

@@ -309,30 +309,30 @@ class LoR_Handler:
                 state.opponent.army.hand.append(card)
             elif y < step: 
                 state.opponent.army.deployed.append(card)
-                card.hp = self.pattern_card_number(card, "hp", "bot")
-                card.atk = self.pattern_card_number(card, "atk", "bot")
+                card._hp = self.pattern_card_number(card, "hp", "bot")
+                card._atk = self.pattern_card_number(card, "atk", "bot")
                 # card.detected_skills
             elif y < 2*step: 
                 state.opponent.army.pit.append(card)
-                card.hp = self.pattern_card_number(card, "hp", "bot")
-                card.atk = self.pattern_card_number(card, "atk", "bot")
+                card._hp = self.pattern_card_number(card, "hp", "bot")
+                card._atk = self.pattern_card_number(card, "atk", "bot")
                 # card.detected_skills
             elif y < 3*step: 
                 state.spell_arena.append(card)
             elif y < 4*step: 
                 state.player.army.pit.append(card)
                 if card.type == CardType.Unit:
-                    card.hp = self.pattern_card_number(card, "hp", "top")
-                    card.atk = self.pattern_card_number(card, "atk", "top")
+                    card._hp = self.pattern_card_number(card, "hp", "top")
+                    card._atk = self.pattern_card_number(card, "atk", "top")
                     # card.detected_skills
             elif y < 5*step: 
                 state.player.army.deployed.append(card)
-                card.hp = self.pattern_card_number(card, "hp", "top")
-                card.atk = self.pattern_card_number(card, "atk", "top")
+                card._hp = self.pattern_card_number(card, "hp", "top")
+                card._atk = self.pattern_card_number(card, "atk", "top")
                 # card.detected_skills
             else: 
                 state.player.army.hand.append(card)
-                card.cost = self.pattern_card_number(card, "cost", "top")
+                card._cost = self.pattern_card_number(card, "cost", "top")
 
 
     def update_status(self, state):
@@ -397,10 +397,10 @@ class LoR_Handler:
     def invert_Y(self, pos):
         return pos[0], self.Lor_app.height - pos[1]
 
-    def card_handle_pos(self, card):
+    def card_handle_pos(self, card): ###@TODO to put in LOR Constant
         pos = queries.get_card_pos(card)
-        x = self.Lor_app.left + int(pos[0] + card["Width"]/5)
-        y = self.Lor_app.top + self.Lor_app.height - int(pos[1] - card["Height"]/6)
+        x = self.Lor_app.left + int(pos[0] + card.width/5)
+        y = self.Lor_app.top + self.Lor_app.height - int(pos[1] - card.height/6)
         return x, y
 
     def click_next(self):
@@ -434,7 +434,7 @@ class LoR_Handler:
         center_x, center_y = self.Lor_app.center()
         pyautogui.moveTo(x, y, 0.6, pyautogui.easeInQuad)
         pyautogui.dragTo(center_x, center_y, 0.2)
-    
+
     def drag_to_block(self, block):
         logging.info("Drag %s to %s", block[0]["name"], block[1]["name"])
         x, y = self.card_handle_pos(block[0])
@@ -444,7 +444,14 @@ class LoR_Handler:
         pyautogui.moveTo(x, y, 0.3, pyautogui.easeInQuad)
         pyautogui.dragTo(destx, desty, 0.2)
 
-
+    def drag_to_card(self, card, target):
+        logging.info("Drag %s to %s", card.name, target.name)
+        x, y = self.card_handle_pos(card)
+        destx, desty = self.card_handle_pos(target)
+        center_x, center_y = self.Lor_app.center()
+        pyautogui.moveTo(center_x, center_y, 0.05, pyautogui.easeInQuad)
+        pyautogui.moveTo(x, y, 0.3, pyautogui.easeInQuad)
+        pyautogui.dragTo(destx, desty, 0.2)
 
     def detect(self, name, src_rect = None):
         self.update_geometry()

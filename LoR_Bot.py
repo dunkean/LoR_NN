@@ -8,7 +8,8 @@ from LoR_ScreenHandler import LoR_Handler
 import LoR_ServerHandler as Server
 import LoR_func
 import LoR_Brain, LoR_Datamodels
-from LoR_Datamodels import Stage
+from LoR_Datamodels import Stage, ActionType
+from LoR_Brain import Action
 
 class Bot:
     game_count = 0
@@ -75,37 +76,31 @@ class Bot:
         state = self.LoR.wait_for_next_state()
         
         print(state.to_str())
+
+        ## Ensure you get a valid state (shot can occure before the end of an animation)
+        tries = 0
         while not state.is_valid():
             state = self.LoR.wait_for_next_state()
+            tries += 1
+            if tries > 3:
+                break
         
-        actions = brain.get_next_actions()
-
-        ## attack, block
-
+        actions = self.brain.get_next_actions(state)
         for action in actions:
             if action == Action.Cast:
-                self.LoR.drag_to_center(action.card)
+                self.LoR.drag_to_center(action.cards[0])
                 for target in action.targets:
                     self.LoR.click_card(target)
             elif action == Action.Block:
-                self.LoR.drag_to_card((action.card, action.target))
+                for i in range(len(action.cards)):
+                    self.LoR.drag_to_card(action.cards[i], action.targets[i])
             elif action == Action.Attack:
-                self.LoR.drag_to_center(action.card)
-                for target in action.targets:
-                    self.LoR.drag_to_card((action.target, action.card))
+                for i in range(len(action.cards)):
+                    self.LoR.drag_to_center(action.cards[i])
+                    if action.targets[i] != None:
+                        self.LoR.drag_to_card(action.targets[i], action.cards[i])
 
 
-
-        if state.stage == Stage.Block:
-            actions = brain.get_block(state)
-            pass
-        elif state.stage == Stage.Counter:
-            actions = brain.get_block(state)
-            pass
-        elif state.stage == Stage.Play:
-            pass
-        else:
-            pass
 
         # action = self.brain.choose_next_action(state)
         # btn = LoR.ocr_btn_txt() #replace with pattern matching
