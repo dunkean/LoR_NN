@@ -1,8 +1,13 @@
 
 def mulligan_button_pos(card, app_height):
-    x = card["TopLeftX"] + int(card["Width"]/2)
-    y = app_height - card["TopLeftY"] + int(1.2*card["Height"])
+    x = card.rect[0] + int(card.size[0]/2)
+    y = app_height - card.rect[1] + int(0.2*card.size[1])
     return (x, y)
+
+def card_hdl_pos(card, app_height): ###@TODO to put in LOR Constant
+    x = int(card.x() + card.width()/5)
+    y = int(card.y() + card.height()/6)
+    return x, y
 
 def game_button_pos(face_card, app_width, app_height):
     x = app_width - int( face_card[0] + 0.5 * face_card[2] )
@@ -17,10 +22,10 @@ def game_button_rect(face_card, app_width, app_height):
     return (x,y,w,h)
 
 def card_prop_rect(card, prop, pos, app_width, app_height):
-    l = card.rect[0]
-    t = card.rect[1]
-    w = card.size[0]
-    h = card.size[1]
+    l = card.x()
+    t = card.y()
+    w = card.width()
+    h = card.height()
     b = card.rect[3]
 
     if prop == "hp":

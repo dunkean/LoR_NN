@@ -18,13 +18,13 @@ class Matcher:
     
     def register_pattern(self, name, canny = False):
         if name not in self.source_patterns:
-            logging.info("Adding pattern %s in sources", name)
+            # logging.info("Adding pattern %s in sources", name)
             image = cv2.imread("assets/" + name + ".png")
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             self.source_patterns[name] = gray
 
         if name not in self.scaled_patterns:
-            logging.info("Adding pattern %s in patterns", name)
+            # logging.info("Adding pattern %s in patterns", name)
             pattern_cv_img = self.source_patterns[name]
             width = int(pattern_cv_img.shape[1] * self.v_scale)
             height = int(pattern_cv_img.shape[0] * self.v_scale)
@@ -34,7 +34,7 @@ class Matcher:
             self.scaled_patterns[name] = pattern_cv_img
 
     def register_img_patterns(self):
-        list_btn = ["Play", "vsAI", "Friends", "Spare", "Challenge", "Accept", "Play", "vsAI", "Continue", "Ready", "Mulligan"]
+        list_btn = ["Play", "vsAI", "Friends", "Spare", "Challenge", "Accept", "Play", "vsAI", "Versus", "Replay", "Continue", "Ready", "Mulligan"]
         for btn in list_btn:
             self.register_pattern(btn)
 
@@ -238,20 +238,20 @@ class Matcher:
     def match_pattern(self, img, name):
         im = ImageOps.grayscale(img)
         im = ImageOps.invert(im)
-        if "token_round" in name:
-            im.save("Capture.png")
+        # if "token_round" in name:
+        #     im.save("Capture.png")
         cv_im = np.array(im.convert('L'))
         pattern_cv_img = self.scaled_patterns[name]
         width = pattern_cv_img.shape[1]
         height = pattern_cv_img.shape[0]
         res = cv2.matchTemplate(cv_im, pattern_cv_img, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(res)
-        if (max_val > 0.8):
-            logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
+        if (max_val > 0.85):
+            # logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
             return (max_loc[0], max_loc[1], width, height)
 
         pattern_cv_img = self.source_patterns[name]
-        logging.info("Attempting scaling for detection")
+        # logging.info("Attempting scaling for detection")
         for i in range(-5, 5, 1):
             scale = i/100 + self.v_scale
             width = int(pattern_cv_img.shape[1] * scale)
@@ -259,8 +259,8 @@ class Matcher:
             pattern_scaled = cv2.resize(pattern_cv_img, (width, height))
             res = cv2.matchTemplate(cv_im, pattern_scaled, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(res)
-            if (max_val > 0.8):
-                logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
+            if (max_val > 0.85):
+                # logging.info("Pattern %s detected at %i, %i, %i, %i", name, max_loc[0], max_loc[1], width, height)
                 return (max_loc[0], max_loc[1], width, height)
         return None
 

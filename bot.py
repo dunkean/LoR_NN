@@ -59,11 +59,11 @@ def log(LoR, last_game_id):
     game_id, won = LoR_Queries.get_last_game()
     while game_id == last_game_id:
         btn = LoR.ocr_btn_txt()
-        print("Button >", btn)
+        # print("Button >", btn)
         status = LoR.get_status()
-        print(status.to_string())
+        # print(status.to_string())
         cards = LoR.get_board_cards()
-        print(cards.to_string())
+        # print(cards.to_string())
         game_id, won = LoR_Queries.get_last_game()
         time.sleep(5)
     return game_id, won

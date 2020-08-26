@@ -2,6 +2,7 @@ import win32gui, win32con
 import subprocess
 import logging
 import time
+import sys
 
 import LoR_ServerHandler as server
 

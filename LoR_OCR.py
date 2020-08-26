@@ -50,7 +50,7 @@ class OCR():
         self.ocr_api.SetVariable('tessedit_char_blacklist', digits)
         self.ocr_api.SetImage(im)
         text = self.ocr_api.GetUTF8Text().strip('\n')
-        logging.info("Btn text detected as %s", text)
+        # logging.info("Btn text detected as %s", text)
         return text.lower()
 
 

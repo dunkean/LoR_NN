@@ -2,11 +2,11 @@ import requests
 import logging
 
 def board():
-    logging.info("query: http://127.0.0.1:21337/positional-rectangles")
+    # logging.info("query: http://127.0.0.1:21337/positional-rectangles")
     url = "http://127.0.0.1:21337/positional-rectangles"
     try:
         data = requests.get(url = url).json()
-        logging.info("--received--\n%s", data)
+        # logging.info("--received--\n%s", data)
         return data
     except:
         logging.warning("No data received")
@@ -14,11 +14,11 @@ def board():
     return None
 
 def get_game_result():
-    logging.info("query: http://127.0.0.1:21337/game-result")
+    # logging.info("query: http://127.0.0.1:21337/game-result")
     url = "http://127.0.0.1:21337/game-result"
     try:
         data = requests.get(url = url).json()
-        logging.info("--received--\n%s", data)
+        # logging.info("--received--\n%s", data)
         return data
     except:
         logging.warning("No data received")
@@ -62,6 +62,8 @@ def get_my_cards():
     return my_cards
 
 def game_in_progress():
+    if cards == None:
+        return False
     if len(cards()) > 0:
         return True
     return False

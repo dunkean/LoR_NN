@@ -15,13 +15,14 @@ class Bot:
     game_count = 0
     victories_count = 0
     
-    actions_active = True
-    log_active = False
+    # actions_active = True
+    # log_active = False
     bot_active = True
 
     LoR = None
     brain = None
     mode = "bot"
+    mulligan_done = False
 
     def __init__(self, mode):
         self.mode = mode
@@ -31,11 +32,11 @@ class Bot:
     def pause(self):
         self.bot_active = not self.bot_active
 
-    def log(self):
-        self.log_active = not self.log_active
+    # def log(self):
+    #     self.log_active = not self.log_active
 
-    def actions(self):
-        self.actions_active = not self.actions_active
+    # def actions(self):
+    #     self.actions_active = not self.actions_active
        
     def start(self):
         if not Server.game_in_progress():
@@ -44,121 +45,107 @@ class Bot:
         while(True):
             if self.bot_active:
                 self.run_session()
-            time.sleep(2)
+            time.sleep(0.5)
 
 
     def launch_match(self, mode): ### @TODO ADD "Ok" rect button for rematch
         # logging.info("Launching match vs %s", mode)
         if mode == "bot":
-            self.LoR.wait_n_click_img(["Play", "vsAI"])
+            self.LoR.wait_n_click_img(["Play", "vsAI", "Versus", "Replay"])
         elif mode == "challenger":
-            self.LoR.wait_n_click_img(["Friends", "Spare", "Challenge"])
+            self.LoR.wait_n_click_img(["Friends", "Spare", "Challenge", "Versus", "Replay"])
         elif mode == "challenged":
-            self.LoR.wait_n_click_img(["Accept"])
+            self.LoR.wait_n_click_img(["Accept", "Versus", "Play"])
         elif mode == "rematch_bot":
-            self.LoR.wait_n_click_img(["Play", "vsAI"])
-        elif mode == "rematch_player":
-            self.LoR.wait_n_click_img(["Continue", "Ready"])
+            self.LoR.wait_n_click_img(["Continue","Replay"])
+        # elif mode == "rematch_player":
+        #     self.LoR.wait_n_click_img(["Continue", "Ready"])
 
         self.LoR.wait_for_game_to_start()
         time.sleep(3)
 
     def mulligan(self):
         logging.info("Mulligan...")
-        cards = Server.get_my_cards()
-        cards_to_mulligan = self.brain.mulligan(cards)
+        if not self.bot_active:
+            return
+        state = self.LoR.wait_for_next_state()
+        cards_to_mulligan = self.brain.mulligan(state.opponent.army.pit)
+        logging.info(state.opponent.army.pit)
         self.LoR.mulligan_cards(cards_to_mulligan)
-    
+        self.LoR.click_next()
+        time.sleep(2)
+        
 
     def play_game(self): # no failsafe for wrong ocr
         if not self.bot_active:
             return
         state = self.LoR.wait_for_next_state()
-        
-        print(state.to_str())
+        if state.stage == Stage.Wait:
+            time.sleep(1)
+            return
+        # print(state.to_str())
 
         ## Ensure you get a valid state (shot can occure before the end of an animation)
         tries = 0
         while not state.is_valid():
+            # print("State invalid")
             state = self.LoR.wait_for_next_state()
             tries += 1
             if tries > 3:
                 break
+
+
         
-        actions = self.brain.get_next_actions(state)
-        for action in actions:
-            if action == Action.Cast:
-                self.LoR.drag_to_center(action.cards[0])
-                for target in action.targets:
-                    self.LoR.click_card(target)
-            elif action == Action.Block:
-                for i in range(len(action.cards)):
-                    self.LoR.drag_to_card(action.cards[i], action.targets[i])
-            elif action == Action.Attack:
-                for i in range(len(action.cards)):
-                    self.LoR.drag_to_center(action.cards[i])
-                    if action.targets[i] != None:
-                        self.LoR.drag_to_card(action.targets[i], action.cards[i])
-
-
-
-        # action = self.brain.choose_next_action(state)
-        # btn = LoR.ocr_btn_txt() #replace with pattern matching
-        # if not_my_turn():
-        #     time.sleep(1)
-        #     continue
-
-        # action = brain.choose_next_action()
-        # if action.type == "cast":
-        #     for card in action.cards:
-        #         logging.info("Casting > %s", card["name"])
-        #         LoR.drag_to_center(card)
-        #         time.sleep(1)
-        # elif action.type == "cast_n_target":
-        #     for card in action.cards:
-        #         LoR.drag_to_center(card)
-        #         for target in card.targets:
-        #             logging.info("Casting %s to %s", card, target)
-        #             LoR.click_card(card)
-        #             time.sleep(0.1)
-        #     time.sleep(0.4)
-        # elif action.type == "attack":
-        #     for card in action.cards:
-        #         logging.info("Attack with %s", card["name"])
-        #         LoR.drag_to_center(card)
-        #         time.sleep(0.2)
-        # elif action.type == "block":
-        #     for card in action.cards:
-        #         logging.info("Blocking %s with %s", card["name"], card.target["name"])
-        #         LoR.drag_to_block((card, card.target))
-        #         time.sleep(0.5)
-
-        # LoR.click_next()
-
-    
+        action = self.brain.get_next_action(state)
+        # print("Action", action)
+        if action.type == ActionType.Cast:
+            self.LoR.drag_to_center(action.cards[0])
+            for target in action.targets:
+                self.LoR.click_card(target)
+        elif action.type == ActionType.Block:
+            for i in range(len(action.cards)):
+                if(action.cards[i] != None):
+                    self.LoR.drag_to_card(action.cards[i], action.cards[i].opp)
+            self.LoR.click_next()
+        elif action.type == ActionType.Attack:
+            for i in range(len(action.cards)):
+                self.LoR.drag_to_center(action.cards[i])
+                if action.cards[i].opp != None:
+                    self.LoR.drag_to_card(action.cards[i].opp, action.cards[i])
+            self.LoR.click_next()
+        elif action.type == ActionType.Pass:
+            self.LoR.click_next()
+            pass
+        # self.LoR.click_next()
+        time.sleep(0.5)
+ 
 
     def run_session(self):
         if not Server.game_in_progress(): ## Relaunch a game
-            if self.mode == "bot":
+            if self.mode == "bot" or self.mode == "rematch_bot":
                 self.launch_match("rematch_bot")
-            else:
+            elif self.mode == "player" or self.mode == "rematch_player":
                 self.launch_match("rematch_player")
 
-        elif self.LoR.detect("Mulligan") != None:
-            # logging.info("Mulligan detected")
+        elif self.mulligan_done == False and self.LoR.detect("Mulligan") != None:
+            logging.info("Mulligan detected")
             self.mulligan()
+            self.mulligan_done = True
 
         else:
             last_game_id, _ = Server.get_last_game()
             game_id = last_game_id
             won = False
-
             while (game_id == last_game_id):
                 self.play_game()
                 game_id, won = Server.get_last_game()
 
+            print("Game", game_id, "Finished", won)
+            logging.info("...Game Finished...")
+            time.sleep(2)
             self.game_count += 1
             if won: self.victories_count += 1
+            self.mulligan_done = False
 
 def main():
     logging.basicConfig(
@@ -174,16 +161,16 @@ def main():
     else:
         bot = Bot(sys.argv[1])
         keyboard.add_hotkey('ctrl+shift+b', bot.pause)
-        keyboard.add_hotkey('ctrl+shift+l', bot.log)
-        keyboard.add_hotkey('ctrl+shift+a', bot.actions)
-        try:
-            bot.start()    
-        except:
-            print("Games/Won: ", game_count, "/", vic_count)
+        # keyboard.add_hotkey('ctrl+shift+l', bot.log)
+        # keyboard.add_hotkey('ctrl+shift+a', bot.actions)
+        # try:
+        bot.start()    
+        # except:
+            # print("Games/Won: ", bot.game_count, "/", bot.victories_count)
 
 
 if __name__ == '__main__':
     print("ctrl+shift+b", "(de)activate bot")
-    print("ctrl+shift+l", "(de)activate log")
-    print("ctrl+shift+a", "(de)activate actions")
+    # print("ctrl+shift+l", "(de)activate log")
+    # print("ctrl+shift+a", "(de)activate actions")
     main()

@@ -120,6 +120,7 @@ class LoR_Handler:
         self.update_geometry()
         self.OCR = LoR_OCR.OCR()
         self.matcher = LoR_PatternMatcher.Matcher(self.v_scale)
+        pyautogui.FAILSAFE = False
 
     def update_geometry(self):
         wl, wt, _, wb = win32gui.GetWindowRect(self.LoR_hwnd)
@@ -181,30 +182,52 @@ class LoR_Handler:
         btn_values = ["round","pass","skip","select","attack","block","turn","summon","ok"]
         detected = False
         while detected == False:
-            logging.info("Wainting for button to be usable for play")
-            ocr = self.btn_txt()
+            # logging.info("Waiting for button to be usable for play")
+            ocr = self.btn_txt().lower()
             if ocr == None:
                 continue
             for v in btn_values:
                 if v in ocr:
                     return v
-            time.sleep(self.duration(1))
+            # time.sleep(self.duration(1))
+        return None
+
+    def get_btn(self):
+        ocr = "######"
+        btn_values = ["round","pass","skip","select","attack","block","turn","summon","ok"]
+        ocr = self.btn_txt().lower()
+        if ocr == None:
+            return None
+        for v in btn_values:
+            if v in ocr:
+                return v
+            # time.sleep(self.duration(1))
         return None
 
     def wait_for_next_state(self):
+        pyautogui.moveTo(self.posToGlobal((0,0)))
         self.update_geometry()
         state = State()
-        btn = self.wait_for_btn()
-        time.sleep(1)
+        btn = self.get_btn()
+        if btn == None:
+            state.stage = Stage.Wait
+            # logging.info("Waiting")
+            time.sleep(0.5)
+            return state
+
+        # time.sleep(1)
         ### Status ###
         self.update_status(state)
+        logging.info("OCR status: %s", state.to_str())
         ### Cards ###
         self.get_board_cards(state)
+        logging.info("Player Army: %s", state.player.army.to_str())
+        logging.info("Opponent Army: %s", state.opponent.army.to_str())
 
         ### Stage ###
         if btn == "round" or btn == "pass":
             state.stage = Stage.Play
-        elif btn == "skip":
+        elif btn == "skip" or btn == "block":
             state.stage = Stage.Block
         elif btn == "ok":
             # if self.last_card(spell_arena).owned: ## @TODO determine the cast or counter or validate state from cards
@@ -213,6 +236,7 @@ class LoR_Handler:
         else:
             state.stage = Stage.Wait
 
+        # print("State available", state.to_str())
         return state
 
     def ocr_card_number(self, card, name, pos):
@@ -268,7 +292,7 @@ class LoR_Handler:
 
         return self.matcher.pattern_detect_number(region.img, name, double_digit)
 
-    def pattern_card_skills(self, card, pos):
+    def pattern_card_skills(self, card, name, pos):
         rect = LoR_Constants.card_prop_rect(card, "skills", pos, self.Lor_app.width, self.Lor_app.height)
         rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
         region = Region(name, self.desktop_img_dc, rect)
@@ -290,6 +314,21 @@ class LoR_Handler:
             return self.matcher.pattern_detect_number(region.img, "cost")
         else:
             return self.matcher.pattern_detect_number(region.img, "unit", True)
+
+
+    def update_card_cor(self, card):
+        logging.info("Update card position")
+        playable_cards = queries.get_playable_cards()   
+        for json_card in playable_cards:
+            if card.id == json_card["CardID"]:
+                y = self.Lor_app.height - json_card["TopLeftY"]
+                x = json_card["TopLeftX"]
+                h = json_card["Height"]
+                w = json_card["Width"]
+                card.rect = (x,y,x+w,y+h)
+                card.size = (w,h)
+                card.center = (x+int(w/2), y+int(h/2))
+                return
 
     def get_board_cards(self, state):
         logging.info("Computing card repartition on board")
@@ -333,6 +372,13 @@ class LoR_Handler:
             else: 
                 state.player.army.hand.append(card)
                 card._cost = self.pattern_card_number(card, "cost", "top")
+        
+        ## Set challenge and forced oppositions
+        for player_card in state.player.army.pit:
+            for opp_card in state.opponent.army.pit:
+                if player_card.rect[0] == opp_card.rect[0]:
+                    player_card.opp = opp_card
+                    opp_card.opp = player_card
 
 
     def update_status(self, state):
@@ -367,7 +413,7 @@ class LoR_Handler:
         else:
             state.opponent.token = TokenType.Stateless
         
-        logging.info("OCR status: %s", state.to_str())
+        
 
 
     def wait_for_selection_menu(self, sleep_duration = 1): ## generic query
@@ -385,7 +431,7 @@ class LoR_Handler:
         if self.face_card_rect == None:
             self.wait_for_game_to_start()
         else:
-            self.wait_for_btn_ingame()
+            self.wait_for_btn()
 
 
     def duration(self, sec):
@@ -397,18 +443,14 @@ class LoR_Handler:
     def invert_Y(self, pos):
         return pos[0], self.Lor_app.height - pos[1]
 
-    def card_handle_pos(self, card): ###@TODO to put in LOR Constant
-        pos = queries.get_card_pos(card)
-        x = self.Lor_app.left + int(pos[0] + card.width/5)
-        y = self.Lor_app.top + self.Lor_app.height - int(pos[1] - card.height/6)
-        return x, y
 
-    def click_next(self):
-        pos = LoR_Constants.game_button_pos(self.face_card_rect, self.Lor_app.width, self.Lor_app.height)
-        global_pos = self.posToGlobal(pos)
-        logging.info("click next %i:%i", global_pos[0], global_pos[1])
-        pyautogui.moveTo(global_pos[0], global_pos[1], 0.1, pyautogui.easeInQuad)
-        pyautogui.click()
+
+    # def card_replace_pos(self, card): ###@TODO to put in LOR Constant
+    #     pos = queries.get_card_pos(card)
+    #     x = self.Lor_app.left + int(pos[0] + card.width/5)
+    #     y = self.Lor_app.top + self.Lor_app.height - int(pos[1] - card.height/6)
+    #     return x, y
+
 
     def click(self, pos = None):
         if pos != None:
@@ -417,41 +459,66 @@ class LoR_Handler:
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
         pyautogui.click()
 
-    def click_card(self, card):
-        self.click(self.card_handle_pos(card))
+
 
     def mulligan_cards(self, cards):
         for card in cards:
             pos = LoR_Constants.mulligan_button_pos(card, self.Lor_app.height)
             global_pos = self.posToGlobal(pos)
-            logging.info("click mulligan %s %i:%i", card["name"], global_pos[0], global_pos[1])
+            logging.info("click mulligan %s %i:%i", card.name, global_pos[0], global_pos[1])
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
             pyautogui.click()
 
+
+    def click_next(self):
+        pos = LoR_Constants.game_button_pos(self.face_card_rect, self.Lor_app.width, self.Lor_app.height)
+        global_pos = self.posToGlobal(pos)
+        logging.info("click next %i:%i", global_pos[0], global_pos[1])
+        pyautogui.moveTo(global_pos[0], global_pos[1], 0.1, pyautogui.easeInQuad)
+        pyautogui.click()
+        pyautogui.moveTo(self.posToGlobal((0,0)))
+
+    def card_handle_pos(self, card):
+        # print(card)
+        x,y = LoR_Constants.card_hdl_pos(card, self.Lor_app.height)
+        # print(x,y)
+        return self.posToGlobal((x,y))
+
+    
+    def click_card(self, card):
+        self.click(self.card_handle_pos(card))
+    
     def drag_to_center(self, card):
-        logging.info("Drag %s to center", card["name"])
+        logging.info("Drag %s to center", card.name)
+        self.update_card_cor(card)
         x, y = self.card_handle_pos(card)
+        # print("card handle",x,y)
         center_x, center_y = self.Lor_app.center()
         pyautogui.moveTo(x, y, 0.6, pyautogui.easeInQuad)
         pyautogui.dragTo(center_x, center_y, 0.2)
-
-    def drag_to_block(self, block):
-        logging.info("Drag %s to %s", block[0]["name"], block[1]["name"])
-        x, y = self.card_handle_pos(block[0])
-        destx, desty = self.card_handle_pos(block[1])
-        center_x, center_y = self.Lor_app.center()
-        pyautogui.moveTo(center_x, center_y, 0.2, pyautogui.easeInQuad)
-        pyautogui.moveTo(x, y, 0.3, pyautogui.easeInQuad)
-        pyautogui.dragTo(destx, desty, 0.2)
+        time.sleep(1)
 
     def drag_to_card(self, card, target):
         logging.info("Drag %s to %s", card.name, target.name)
+        self.update_card_cor(card)
+        self.update_card_cor(target)
         x, y = self.card_handle_pos(card)
         destx, desty = self.card_handle_pos(target)
         center_x, center_y = self.Lor_app.center()
         pyautogui.moveTo(center_x, center_y, 0.05, pyautogui.easeInQuad)
         pyautogui.moveTo(x, y, 0.3, pyautogui.easeInQuad)
         pyautogui.dragTo(destx, desty, 0.2)
+        time.sleep(1)
+
+    # def drag_to_block(self, block):
+    #     logging.info("Drag %s to %s", block[0]["name"], block[1]["name"])
+    #     x, y = self.card_handle_pos(block[0])
+    #     destx, desty = self.card_handle_pos(block[1])
+    #     center_x, center_y = self.Lor_app.center()
+    #     pyautogui.moveTo(center_x, center_y, 0.2, pyautogui.easeInQuad)
+    #     pyautogui.moveTo(x, y, 0.3, pyautogui.easeInQuad)
+    #     pyautogui.dragTo(destx, desty, 0.2)
+
 
     def detect(self, name, src_rect = None):
         self.update_geometry()
@@ -470,7 +537,7 @@ class LoR_Handler:
         source.capture(self.mem_dc)
         if source.img == None:
             return None
-        # if name == "token_scout":
+        # if name == "Mulligan":
         #     source.img.show()
         rect = self.matcher.match_pattern(source.img, name)
 
@@ -486,10 +553,11 @@ class LoR_Handler:
         if rect != None:
             pos = (rect[0] + int(rect[2]/2), rect[1] + int(rect[3]/2))
             # print("Detection of %s > %i:%i", name, pos[0], pos[1])
-            logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
+            # logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
         else:
+            pass
             # print(name, "not detected")
-            logging.info("%s not detected", name)
+            # logging.info("%s not detected", name)
         return pos
 
 

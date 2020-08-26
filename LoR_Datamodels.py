@@ -135,6 +135,10 @@ class SubType(IntEnum, metaclass=DefaultEnumMeta):
     YETI = 5
     ELNUK = 6
 
+class CardState(IntEnum, metaclass=DefaultEnumMeta):
+    Active = 0
+    Inactive = 1
+    Dead = 2
 # class Effect:  
 #     def trigger_effect(targets):
 #         pass
@@ -181,13 +185,29 @@ class Card(CardDesc):
     id: str = ""
     owned: bool = False
     targets: List[Type['Card']] = field(default_factory=list)
+    opp: Type['Card'] = None
+    state: CardState = CardState.Inactive
     rect: Tuple[int,int,int,int] = (0,0,0,0)
     size: Tuple[int,int] = (0,0)
     center: Tuple[int,int] = (0,0)
     _cost: int = -1
-    _atk: int = 0
-    _hp: int = 0
+    _atk: int = -1
+    _hp: int = -1
+    # dmg: int = 0
     detected_skills: List[Skill] = field(default_factory=list)
+
+    def __str__(self):
+        return self.name + "_" + str(self.id)
+    def __repr__(self):
+        return self.name + "_" + str(self.id)
+    
+    def __hash__(self):
+        return hash(str(self))
+
+    def __eq__(self,other):
+        if other == None:
+            return False
+        return self.name == other.name and self.id == other.id
 
     def from_json(self, data, rect, size, center):
         self.id = data["CardID"]
@@ -198,10 +218,19 @@ class Card(CardDesc):
         self.center = center
     
     def to_str(self):
-        if self.cost == -1:
+        if self._cost == -1:
             return self.name + "(" + str(self._atk) + ":" + str(self._hp) + ")"
         else:
-            return "(" + str(self._cost) + ")" + self.name
+            return "(" + str(self.cost()) + ")" + self.name
+
+    def has(self, skill):
+        return skill in self.skills
+
+    def x(self):
+        return self.rect[0]
+
+    def y(self):
+        return self.rect[1]
 
     def width(self):
         return self.size[0]
@@ -211,21 +240,22 @@ class Card(CardDesc):
 
     def atk(self):
         if self._atk == -1:
-            return super().base_attack
+            return self.base_attack
         return self._atk
     
     def hp(self):
         if self._hp == -1:
-            return super().base_hp
+            return self.base_health
         return self._hp
 
     def cost(self):
         if self._cost == -1:
-            return super().base_cost
+            return self.base_cost
         return self._cost
 
     def is_valid(self):
-        return not self._atk == -1 and not self._hp == -1
+        return True
+        # return not self._atk == -1 and not self._hp == -1 # TODO CHECK THAT
 
 ################################################################################################################################
 ################################################              BOARD                 ############################################
