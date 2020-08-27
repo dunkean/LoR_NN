@@ -126,6 +126,7 @@ class Skill(IntEnum, metaclass=DefaultEnumMeta):
     Autoplay = 36
 
 
+
 class SubType(IntEnum, metaclass=DefaultEnumMeta):
     Unknown = 0
     ELITE = 1
@@ -163,6 +164,7 @@ class CardDesc:
     
     def from_json(self, code):
         data = DB.card(code)
+        if data == None: return
         self.code = code
         self.name = data["name"]
         self.type = CardType[data["type"]]
@@ -219,7 +221,7 @@ class Card(CardDesc):
     
     def to_str(self):
         if self._cost == -1:
-            return self.name + "(" + str(self._atk) + ":" + str(self._hp) + ")"
+            return self.name + "(" + str(self.atk()) + ":" + str(self.hp()) + ")"
         else:
             return "(" + str(self.cost()) + ")" + self.name
 

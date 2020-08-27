@@ -1,15 +1,35 @@
-Features:
-*********
-Rules simulator (5%)
-Combat simulation (60%)
-Situation evaluator (30%)
-Ortools instead of own knapsack (50%)
-Bruteforce atk/blk (80%)
-Opponent action predictor (0%)
-tplmatch for scout token, round token, cards keywords (0%)
-- detect Elusive-Barrier-Stun
+Critical:
+---------
+Continue button detected at 184:87 after match sometimes (detection bug or timing bug)
+Detection bug on hp/atk (to do complete testing)
 
-Bugs:
-*****
-After multiples matches, bot stuck in continue screen, logging btn constness
+Important:
+----------
+Cast b4 attack instead of direct attack to kill
+Drag attackers by blocks (look into deployed to see neighbors)
 
+Desired:
+--------
+Globally optimize/simplify attackers and blockers brute search (ie. remove duplicates with same unit)
+Detect Stun, Elusive, Barrier, ? Spell Barrier ? and potentially all buffs / debuffs icons
+Consider Scout in combat phase
+
+Exciter:
+--------
+Improve challenger/Vulnerable usage in search (is worst result better with challenge ?)
+Cast new units event if 6 depployed
+
+
+************
+* Features *
+************
+Bruteforce atk/blk (100%) - All combinations, no AI
+Ortools instead of own knapsack (90%) - no solution to consider correctly spell mana :/
+Scripted player (70%) - Simple clicks, state automata, missing intelligent mouse, AI, restart/unstuck strategy
+Situation evaluator (60%) - simple efficient version, no AI
+Combat simulation (60%) - missing many rules (simples skills and hits done)
+Screen interpreter (50%) - numbers interpretation bugs, clouding effects (stun, elusive, barrier), hp/atk buffs in hand, spell targets
+Rules instancier (10%) - simple combats done missing everything else
+Opponent action predictor (0%) - what the next card / action
+Card text interpreter (0%) - text to formal rules
+Spell simulation (0%) - spell stack, targets, timing, effects

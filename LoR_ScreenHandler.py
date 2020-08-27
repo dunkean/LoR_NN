@@ -458,6 +458,7 @@ class LoR_Handler:
             logging.info("click %i:%i", global_pos[0], global_pos[1])
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
         pyautogui.click()
+        time.sleep(0.05)
 
 
 
@@ -476,6 +477,7 @@ class LoR_Handler:
         logging.info("click next %i:%i", global_pos[0], global_pos[1])
         pyautogui.moveTo(global_pos[0], global_pos[1], 0.1, pyautogui.easeInQuad)
         pyautogui.click()
+        time.sleep(0.05)
         pyautogui.moveTo(self.posToGlobal((0,0)))
 
     def card_handle_pos(self, card):
@@ -487,6 +489,7 @@ class LoR_Handler:
     
     def click_card(self, card):
         self.click(self.card_handle_pos(card))
+        time.sleep(0.05)
     
     def drag_to_center(self, card):
         logging.info("Drag %s to center", card.name)
@@ -494,9 +497,9 @@ class LoR_Handler:
         x, y = self.card_handle_pos(card)
         # print("card handle",x,y)
         center_x, center_y = self.Lor_app.center()
-        pyautogui.moveTo(x, y, 0.6, pyautogui.easeInQuad)
-        pyautogui.dragTo(center_x, center_y, 0.2)
-        time.sleep(1)
+        pyautogui.moveTo(x, y, 0.2, pyautogui.easeInQuad)
+        pyautogui.dragTo(center_x, center_y, 0.3)
+        time.sleep(0.9)
 
     def drag_to_card(self, card, target):
         logging.info("Drag %s to %s", card.name, target.name)
@@ -505,10 +508,10 @@ class LoR_Handler:
         x, y = self.card_handle_pos(card)
         destx, desty = self.card_handle_pos(target)
         center_x, center_y = self.Lor_app.center()
-        pyautogui.moveTo(center_x, center_y, 0.05, pyautogui.easeInQuad)
+        pyautogui.moveTo(center_x, center_y, 0.2, pyautogui.easeInQuad)
         pyautogui.moveTo(x, y, 0.3, pyautogui.easeInQuad)
-        pyautogui.dragTo(destx, desty, 0.2)
-        time.sleep(1)
+        pyautogui.dragTo(destx, desty, 0.3)
+        time.sleep(1.3)
 
     # def drag_to_block(self, block):
     #     logging.info("Drag %s to %s", block[0]["name"], block[1]["name"])
@@ -564,7 +567,7 @@ class LoR_Handler:
 
 
     def wait_n_click_img(self, btn_names, click = True, sleep_duration = 3):
-        logging.info("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
+        logging.info("Waiting images %s" + "for click" if click else "", " - ".join(btn_names))
         # print("Waiting images %s" + "for click" if click else "", "-".join(btn_names))
         index = 0
         last_detected_pos = None
@@ -597,8 +600,9 @@ class LoR_Handler:
                     btn_names.pop(0)
                     last_detected_pos = detected_pos
                     self.click(detected_pos)
+                    time.sleep(0.5)
 
-            time.sleep(self.duration(sleep_duration))
+            time.sleep(0.5)
         return True
 
     def exit(self):

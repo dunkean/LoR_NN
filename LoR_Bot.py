@@ -30,6 +30,7 @@ class Bot:
         self.brain = LoR_Brain.Brain()
 
     def pause(self):
+        print("Running", self.bot_active)
         self.bot_active = not self.bot_active
 
     # def log(self):
@@ -112,6 +113,7 @@ class Bot:
                 self.LoR.drag_to_center(action.cards[i])
                 if action.cards[i].opp != None:
                     self.LoR.drag_to_card(action.cards[i].opp, action.cards[i])
+            time.sleep(0.3)
             self.LoR.click_next()
         elif action.type == ActionType.Pass:
             self.LoR.click_next()
@@ -140,9 +142,9 @@ class Bot:
                 self.play_game()
                 game_id, won = Server.get_last_game()
 
-            print("Game", game_id, "Finished", won)
+            print("Game", game_id, "Finished", won, "at", time.strftime("%H:%M:%S", time.localtime()))
             logging.info("...Game Finished...")
-            time.sleep(2)
+            time.sleep(4)
             self.game_count += 1
             if won: self.victories_count += 1
             self.mulligan_done = False
@@ -164,6 +166,7 @@ def main():
         # keyboard.add_hotkey('ctrl+shift+l', bot.log)
         # keyboard.add_hotkey('ctrl+shift+a', bot.actions)
         # try:
+        print("Start at", time.strftime("%H:%M:%S", time.localtime()))
         bot.start()    
         # except:
             # print("Games/Won: ", bot.game_count, "/", bot.victories_count)

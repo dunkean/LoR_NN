@@ -12,6 +12,45 @@ from typing import List, Tuple, Type
 from LoR_Datamodels import Card, State, ActionType, CardType, Database, Stage, CardRarity, TokenType, Skill, CardState
 import LoR_Simulator as simulator
 
+Skill_Bonus = {
+    Skill.Attack: 0,
+    Skill.Attune: 0.5,
+    Skill.Barrier: 1,
+    Skill.Burst: 0,
+    Skill.CantBlock: -2,
+    Skill.Capture: 0,
+    Skill.Challenger: 2,
+    Skill.DoubleStrike: 2.5,
+    Skill.Drain: 1.2,
+    Skill.Elusive: 2,
+    Skill.Enlightened: 0,
+    Skill.Ephemeral: -1.5,
+    Skill.Fast: 0,
+    Skill.Fearsome: 2,
+    Skill.Fleeting: 0,
+    Skill.Frostbite: 0,
+    Skill.Imbue: 0,
+    Skill.Immobile: 0,
+    Skill.LastBreath: 0,
+    Skill.Lifesteal: 2,
+    Skill.Obliterate: 0,
+    Skill.Overwhelm: 2,
+    Skill.Play: 0,
+    Skill.QuickStrike: 2,
+    Skill.Recall: 0,
+    Skill.Regeneration: 1.5,
+    Skill.Scout: 1.5,
+    Skill.Skill: 0,
+    Skill.Slow: 0,
+    Skill.Stun: 0,
+    Skill.Tough: 1.5,
+    Skill.Trap: 0,
+    Skill.Vulnerable: 0,
+    Skill.Weakest: 0,
+    Skill.SpellOverwhelm: 0,
+    Skill.Autoplay: 0
+}
+
 @dataclass
 class Action:
     type: ActionType
@@ -56,7 +95,19 @@ class Brain:
             # print("EVALUATION", card.name, card.atk(), card.hp(), 0)
             return -1
         # print("EVALUATION", card.name, card.atk(), card.hp(), card.hp() + card.atk())
-        return card.hp() + card.atk() + card.cost() + card.rarity
+        score = card.hp() + card.atk()
+        score += ( card.cost() / 2 )
+        for s in card.skills:
+            score += Skill_Bonus[s]
+
+        if card.rarity == CardRarity.Champion:
+            score = 10 + score * 2
+        elif card.rarity == CardRarity.Epic:
+            score = score * 1.2
+        
+
+        # print(card.name, score)
+        return score
         # return card.rarity * card.cost() + card.hp() + card.atk()
 
     def ease(self, p):
@@ -68,8 +119,10 @@ class Brain:
     def evaluate_board(self, state):
         # player_score = state.player.hp * 3
         # opp_score = state.opponent.hp * 3
-        player_score = state.player.hp * 3 if state.player.hp < 0 else self.ease(state.player.hp)
-        opp_score = state.opponent.hp * 3 if state.opponent.hp < 0 else self.ease(state.opponent.hp)
+        player_score = (state.player.hp-20) if state.player.hp <= 0 else self.ease(state.player.hp)
+        player_score = player_score * 1.9
+        opp_score = (state.opponent.hp-20) if state.opponent.hp <= 0 else self.ease(state.opponent.hp)
+        opp_score = opp_score * 1.9
 
         for c in state.player.army.deployed:
             if c != None: player_score += self.evaluate_card(c)
@@ -80,6 +133,7 @@ class Brain:
         for c in state.opponent.army.pit:
             if c != None: opp_score += self.evaluate_card(c)
 
+        # print(player_score, " vs ", opp_score)
         return player_score - opp_score
 
     def knapsack_cast(self, state):
@@ -164,16 +218,19 @@ class Brain:
 
         atkrs_list, blkrs_perm = self.atk_permutations(sim_state)
         scores = []
-        best_delta_block_index = []
+        best_block_index = []
         initial_score = self.evaluate_board(state)
-        print("----------------- COMPUTING ATTACK ------------------")
-        print("Initial score:", initial_score)
+        # print("----------------- COMPUTING ATTACK ------------------")
+        # print("Initial score:", initial_score)
+        # print("Player:", state.player.army.to_str())
+        # print("Opponent:", state.opponent.army.to_str())
         for i in range(len(atkrs_list)) :
             blkrs_list = blkrs_perm[i]
             atkrs = atkrs_list[i]
-            print("*** Attackers > ", atkrs)
+            # print("*** Attackers > ", atkrs)
             local_scores = []
             for blkrs in blkrs_list:
+                blkrs = list(blkrs)
                 for i in range(len(atkrs)):
                     if blkrs[i] != None:
                         if atkrs[i].has(Skill.Elusive) and blkrs[i] != None and not blkrs[i].has(Skill.Elusive):
@@ -190,14 +247,14 @@ class Brain:
                 sim_state.opponent.army.deployed = [c for c in state.opponent.army.deployed if not c in list(blkrs)]
                 new_state = simulator.simulate_fight(sim_state)
                 new_score = self.evaluate_board(new_state)
-                print("***--> ", blkrs, " >>> ", new_score)
+                # print("***--> ", blkrs, " >>> ", new_score)
                 local_scores.append(new_score)
             scores.append(min(local_scores))
-            best_delta_block_index.append(local_scores.index(max(local_scores)))
+            best_block_index.append(local_scores.index(max(local_scores)))
 
         best_atk_index = scores.index(max(scores))
         atkrs = list(atkrs_list[best_atk_index])
-        blkrs = list(blkrs_list[best_delta_block_index[best_atk_index]])
+        blkrs = list(blkrs_list[best_block_index[best_atk_index]])
         # print("Attackers", atkrs)
         # print("Blockers", blkrs)
         for i in range(len(atkrs)):
@@ -206,6 +263,7 @@ class Brain:
             else:
                 atkrs[i].opp = None
 
+        # print("++++ CHOSEN ++++", atkrs, " >>> ", max(scores))
         return atkrs
 
 
@@ -215,11 +273,17 @@ class Brain:
         scores = []
         initial_score = self.evaluate_board(state)
         # print("initial_score", initial_score)
+        # print("----------------- COMPUTING BLOCK ------------------")
+        # print("Initial score:", initial_score)
+        # print("*** Attackers > ", atkrs)
         for j in range(len(blkrs_list)):
             blkrs = list(blkrs_list[j])
             for i in range(len(blkrs)):
                 if atkrs[i].has(Skill.Elusive) and blkrs[i] != None and not blkrs[i].has(Skill.Elusive):
                    blkrs[i] = None
+                elif atkrs[i].has(Skill.Fearsome) and blkrs[i] != None and blkrs[i].atk() < 3:
+                    blkrs[i] = None
+
                 if blkrs[i] != None:
                     blkrs[i].opp = atkrs[i]
                 atkrs[i].opp = blkrs[i]
@@ -229,15 +293,18 @@ class Brain:
             new_state = simulator.simulate_fight(sim_state)
             new_score = self.evaluate_board(new_state)
             # print("new_score", new_score)
-            scores.append(initial_score - new_score)
+            # print("***--> ", blkrs, " >>> ", new_score)
+            scores.append(new_score)
 
-        best_blk_index = scores.index(min(scores))
+        best_blk_index = scores.index(max(scores))
 
         blkrs = blkrs_list[best_blk_index]
         for i in range(len(blkrs)):
             if blkrs[i] != None: 
                 blkrs[i].opp = atkrs[i]
             atkrs[i].opp = blkrs[i]
+        
+        # print("++++ CHOSEN ++++", blkrs, " >>> ", max(scores))
         return blkrs
 
 
@@ -256,7 +323,7 @@ class Brain:
             card = self.knapsack_cast(state)
             # print("KNAPSACK", card)
             if card == None:
-                if state.player.token == TokenType.Attack:
+                if state.player.token == TokenType.Attack and len(state.player.army.deployed) > 0:
                     atkrs = self.choose_attackers(state)
                     return Action(ActionType.Attack, atkrs)
                 else:
