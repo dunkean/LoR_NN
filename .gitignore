@@ -1,0 +1,4 @@
+__pycache__/
+tmp/
+debug.log
+tesserocr_tesseract_4.1.0rc1/tessdata/eng.traineddata
