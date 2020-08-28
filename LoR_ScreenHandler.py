@@ -556,11 +556,11 @@ class LoR_Handler:
         if rect != None:
             pos = (rect[0] + int(rect[2]/2), rect[1] + int(rect[3]/2))
             # print("Detection of %s > %i:%i", name, pos[0], pos[1])
-            # logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
+            logging.info("Detection of %s > %i:%i", name, pos[0], pos[1])
         else:
             pass
             # print(name, "not detected")
-            # logging.info("%s not detected", name)
+            logging.info("%s not detected", name)
         return pos
 
 
@@ -591,8 +591,10 @@ class LoR_Handler:
                             # print("clicking screen dumbly")
                             self.click()
                         else:
-                            logging.info("clicking last detected position")
-                            # print("clicking last detected position")
+                            # logging.info("reseting index of detection")
+                            # index = max(0, index-1)
+                            # logging.info("clicking last detected position")
+                            print("clicking last detected position")
                             self.click(last_detected_pos)
                 else:
                     logging.info("Clicking %s", name)
@@ -602,7 +604,7 @@ class LoR_Handler:
                     self.click(detected_pos)
                     time.sleep(0.5)
 
-            time.sleep(0.5)
+            time.sleep(1)
         return True
 
     def exit(self):
