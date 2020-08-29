@@ -1,7 +1,6 @@
 import logging
 import sys
 import time
-
 import keyboard
 
 from LoR_ScreenHandler import LoR_Handler
@@ -11,14 +10,14 @@ import LoR_Brain, LoR_Datamodels
 from LoR_Datamodels import Stage, ActionType
 from LoR_Brain import Action
 
+bot_active = True
+bot_running = True
+
 class Bot:
     game_count = 0
     victories_count = 0
     
-    # actions_active = True
-    # log_active = False
-    bot_active = True
-
+    global bot_active
     LoR = None
     brain = None
     mode = "bot"
@@ -29,22 +28,14 @@ class Bot:
         self.LoR = LoR_Handler(LoR_func.launch_application())
         self.brain = LoR_Brain.Brain()
 
-    def pause(self):
-        print("Running", self.bot_active)
-        self.bot_active = not self.bot_active
-
-    # def log(self):
-    #     self.log_active = not self.log_active
-
-    # def actions(self):
-    #     self.actions_active = not self.actions_active
-       
     def start(self):
         if not Server.game_in_progress():
             self.launch_match(self.mode)
         
         while(True):
-            if self.bot_active:
+            if self.game_count >= 6:
+                return
+            if bot_active:
                 self.run_session()
             time.sleep(0.5)
 
@@ -67,7 +58,7 @@ class Bot:
 
     def mulligan(self):
         logging.info("Mulligan...")
-        if not self.bot_active:
+        if not bot_active:
             return
         state = self.LoR.wait_for_next_state()
         cards_to_mulligan = self.brain.mulligan(state.opponent.army.pit)
@@ -78,7 +69,7 @@ class Bot:
         
 
     def play_game(self): # no failsafe for wrong ocr
-        if not self.bot_active:
+        if not bot_active:
             return
         state = self.LoR.wait_for_next_state()
         if state.stage == Stage.Wait:
@@ -142,38 +133,53 @@ class Bot:
                 self.play_game()
                 game_id, won = Server.get_last_game()
 
-            print("Game", game_id, "Finished", won, "at", time.strftime("%H:%M:%S", time.localtime()))
+            print("Game", game_id, "Finished", won, "at", time.strftime("%H:%M:%S", time.localtime()), self.victories_count, "/", self.game_count)
             logging.info("...Game Finished...")
             time.sleep(4)
             self.game_count += 1
             if won: self.victories_count += 1
             self.mulligan_done = False
 
+def pause(self):
+    global bot_active
+    bot_active = not bot_active
+    print("Running", bot_active)
+
+def abort_bot():
+    global bot_running
+    bot_running = False
+    print("Stoping bot")
+    sys.exit(1)
+
 def main():
+    global bot_running
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARN,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
             logging.FileHandler("debug.log")
         ]
     )
+    keyboard.add_hotkey('ctrl+shift+w', abort_bot) 
+    keyboard.add_hotkey('ctrl+shift+b', pause)   
+
+    mode = sys.argv[1]
 
     if sys.argv[1] == "capture":
         LoR_Handler.raw_capture()
     else:
-        bot = Bot(sys.argv[1])
-        keyboard.add_hotkey('ctrl+shift+b', bot.pause)
-        # keyboard.add_hotkey('ctrl+shift+l', bot.log)
-        # keyboard.add_hotkey('ctrl+shift+a', bot.actions)
-        # try:
-        print("Start at", time.strftime("%H:%M:%S", time.localtime()))
-        bot.start()    
-        # except:
-            # print("Games/Won: ", bot.game_count, "/", bot.victories_count)
+        while(bot_running):
+            bot = Bot(mode)
+            try:
+                print("Start at", time.strftime("%H:%M:%S", time.localtime()))
+                bot.start()    
+            except:
+                mode = "rematch_bot" if (mode == "bot") else "rematch_player"
+                print("Exception catch, relaunch")
 
+            mode = "rematch_bot" if (mode == "bot") else "rematch_player"
 
 if __name__ == '__main__':
-    print("ctrl+shift+b", "(de)activate bot")
-    # print("ctrl+shift+l", "(de)activate log")
-    # print("ctrl+shift+a", "(de)activate actions")
+    print("ctrl+shift+b", "pause/run bot")
+    print("ctrl+shift+w", "(de)activate failsafe")
     main()

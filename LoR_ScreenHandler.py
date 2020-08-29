@@ -627,23 +627,3 @@ def raw_capture():
     im = LoR.ocr_filter_img(LoR.Lor_app.img)
     im.save("capture.png")
 
-
-
-
-# logger = logging.getLogger('server_logger')
-# logger.setLevel(logging.INFO)
-# # create file handler which logs even debug messages
-# fh = logging.FileHandler('server.log')
-# fh.setLevel(logging.INFO)
-# # create console handler with a higher log level
-# ch = logging.StreamHandler()
-# ch.setLevel(logging.INFO)
-# # create formatter and add it to the handlers
-# formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-# ch.setFormatter(formatter)
-# fh.setFormatter(formatter)
-# # add the handlers to logger
-# logger.addHandler(ch)
-# logger.addHandler(fh)
-# logging.getLogger().disabled = False
-# # LoR_h = launch()
