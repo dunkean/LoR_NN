@@ -38,7 +38,10 @@ class Region:
         self.desktop_img_dc = desktop_img_dc
         self.bitmap = win32ui.CreateBitmap()
         self.update_geometry(rect)
-        
+    
+    def __del__(self):
+        win32gui.DeleteObject(self.bitmap.GetHandle())
+
     def rect(self):
         return (self.left, self.top, self.width, self.height)
     
@@ -54,6 +57,7 @@ class Region:
                 pass
             except:
                 logging.error("Unable to create region %s compatible bitmap", self.name)
+                print(win32gui.error())
                 pass
 
         self.left = rect[0]
