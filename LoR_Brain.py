@@ -96,7 +96,7 @@ class Brain:
             # print("EVALUATION", card.name, card.atk(), card.hp(), 0)
             return -1
         # print("EVALUATION", card.name, card.atk(), card.hp(), card.hp() + card.atk())
-        score = card.hp() + card.atk()
+        score = card.hp() + card.atk() * 1.2
         score += ( card.cost() / 2 )
         for s in card.skills:
             score += Skill_Bonus[s]

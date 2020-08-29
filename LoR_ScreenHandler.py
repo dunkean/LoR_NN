@@ -82,6 +82,8 @@ class Region:
             pass
         except:
             logging.error("Unable to select or copy region", self.name)
+            print("CAPTURE ERROR")
+            print(win32gui.error())
             self.img = None
             pass
 
@@ -98,6 +100,8 @@ class LoR_Handler:
     face_card_rect = None
     opp_face_card_rect = None
 
+    desktop_hwnd = None
+    desktop_dc = None
     desktop_img_dc = None
     mem_dc = None
 
@@ -107,20 +111,33 @@ class LoR_Handler:
     matcher = None
 
     def __init__(self, LoR_hwnd):
-        self.LoR_hwnd = LoR_hwnd
-        ## create device context for desktop and client
-        desktop_hwnd = win32gui.GetDesktopWindow()
-        desktop_dc = win32gui.GetWindowDC(desktop_hwnd)
-        self.desktop_img_dc = win32ui.CreateDCFromHandle(desktop_dc)
-        self.mem_dc = self.desktop_img_dc.CreateCompatibleDC()
-        ## default system decorations
-        self.sys_wdn_offset = ( win32api.GetSystemMetrics(win32con.SM_CXFRAME) + win32api.GetSystemMetrics(92), #SM_CXPADDEDBORDER
-                                win32api.GetSystemMetrics(win32con.SM_CYFRAME) + win32api.GetSystemMetrics(92) + win32api.GetSystemMetrics(win32con.SM_CYCAPTION))
-        self.Lor_app = Region("LoR", self.desktop_img_dc)
-        self.update_geometry()
-        self.OCR = LoR_OCR.OCR()
-        self.matcher = LoR_PatternMatcher.Matcher(self.v_scale)
-        pyautogui.FAILSAFE = False
+        try:
+            self.LoR_hwnd = LoR_hwnd
+            ## create device context for desktop and client
+            self.desktop_hwnd = win32gui.GetDesktopWindow()
+            self.desktop_dc = win32gui.GetWindowDC(self.desktop_hwnd)
+            self.desktop_img_dc = win32ui.CreateDCFromHandle(self.desktop_dc)
+            self.mem_dc = self.desktop_img_dc.CreateCompatibleDC()
+            ## default system decorations
+            self.sys_wdn_offset = ( win32api.GetSystemMetrics(win32con.SM_CXFRAME) + win32api.GetSystemMetrics(92), #SM_CXPADDEDBORDER
+                                    win32api.GetSystemMetrics(win32con.SM_CYFRAME) + win32api.GetSystemMetrics(92) + win32api.GetSystemMetrics(win32con.SM_CYCAPTION))
+            self.Lor_app = Region("LoR", self.desktop_img_dc)
+            self.update_geometry()
+            self.OCR = LoR_OCR.OCR()
+            self.matcher = LoR_PatternMatcher.Matcher(self.v_scale)
+            pyautogui.FAILSAFE = False
+        except win32gui.error:
+            print("GUI error in init")
+            print(win32gui.error())
+            self.mem_dc.DeleteDC()
+            self.desktop_img_dc.DeleteDC()
+            win32gui.ReleaseDC(self.desktop_hwnd, self.desktop_dc)
+        
+    def __del__(self):
+        self.mem_dc.DeleteDC()
+        self.desktop_img_dc.DeleteDC()
+        win32gui.ReleaseDC(self.desktop_hwnd, self.desktop_dc)
+
 
     def update_geometry(self):
         wl, wt, _, wb = win32gui.GetWindowRect(self.LoR_hwnd)

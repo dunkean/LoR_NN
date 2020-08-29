@@ -34,6 +34,7 @@ class Bot:
         
         while(True):
             if self.game_count >= 6:
+                self.game_count = 0
                 return
             if bot_active:
                 self.run_session()
@@ -117,8 +118,8 @@ class Bot:
         if not Server.game_in_progress(): ## Relaunch a game
             if self.mode == "bot" or self.mode == "rematch_bot":
                 self.launch_match("rematch_bot")
-            elif self.mode == "challenger" or self.mode == "rematch_challenger":
-                self.launch_match("rematch_player")
+            elif self.mode == "challenger" or self.mode == "rematch_challenger" or self.mode == "challenged":
+                self.launch_match("rematch_challenger")
 
         elif self.mulligan_done == False and self.LoR.detect("Mulligan") != None:
             logging.info("Mulligan detected")
@@ -174,10 +175,10 @@ def main():
                 print("Start at", time.strftime("%H:%M:%S", time.localtime()))
                 bot.start()    
             except:
-                mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challengerr"
+                mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challenger"
                 print("Exception catch, relaunch")
 
-            mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challengerr"
+            mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challenger"
 
 if __name__ == '__main__':
     print("ctrl+shift+b", "pause/run bot")
