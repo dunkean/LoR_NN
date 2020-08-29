@@ -10,6 +10,9 @@ class OCR():
 
     def __init__(self):
         self.reset()
+
+    def __del__(self):
+        del self.ocr_api
     
     def reset(self):
         self.ocr_api = PyTessBaseAPI(oem = OEM.TESSERACT_ONLY)

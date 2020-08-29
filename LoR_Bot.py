@@ -28,6 +28,11 @@ class Bot:
         self.LoR = LoR_Handler(LoR_func.launch_application())
         self.brain = LoR_Brain.Brain()
 
+    def __del__(self):
+        del self.LoR
+        del self.brain
+
+
     def start(self):
         if not Server.game_in_progress():
             self.launch_match(self.mode)
@@ -175,6 +180,7 @@ def main():
                 print("Start at", time.strftime("%H:%M:%S", time.localtime()))
                 bot.start()    
             except:
+                del bot
                 mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challenger"
                 print("Exception catch, relaunch")
 

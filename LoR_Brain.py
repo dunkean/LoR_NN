@@ -70,6 +70,9 @@ class Brain:
 
         # self.load_db()
 
+    def __del__(self):
+        del self.solver
+
     # def load_db(self):
     #     with open('set1-en_us.json', encoding="utf8") as json_file:
     #         for p in json.load(json_file):

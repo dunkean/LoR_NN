@@ -138,6 +138,10 @@ class LoR_Handler:
             win32gui.ReleaseDC(self.desktop_hwnd, self.desktop_dc)
         
     def __del__(self):
+        del self.Lor_app
+        for key in list(self.regions):   
+            del self.regions[key] 
+
         self.mem_dc.DeleteDC()
         self.desktop_img_dc.DeleteDC()
         win32gui.ReleaseDC(self.desktop_hwnd, self.desktop_dc)
