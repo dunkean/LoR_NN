@@ -50,8 +50,8 @@ class Bot:
             self.LoR.wait_n_click_img(["Accept", "Versus", "Play"])
         elif mode == "rematch_bot":
             self.LoR.wait_n_click_img(["Continue","Replay"])
-        # elif mode == "rematch_player":
-        #     self.LoR.wait_n_click_img(["Continue", "Ready"])
+        elif mode == "rematch_challenger":
+            self.LoR.wait_n_click_img(["Continue", "Ready"])
 
         self.LoR.wait_for_game_to_start()
         time.sleep(3)
@@ -117,7 +117,7 @@ class Bot:
         if not Server.game_in_progress(): ## Relaunch a game
             if self.mode == "bot" or self.mode == "rematch_bot":
                 self.launch_match("rematch_bot")
-            elif self.mode == "player" or self.mode == "rematch_player":
+            elif self.mode == "challenger" or self.mode == "rematch_challenger":
                 self.launch_match("rematch_player")
 
         elif self.mulligan_done == False and self.LoR.detect("Mulligan") != None:
@@ -174,10 +174,10 @@ def main():
                 print("Start at", time.strftime("%H:%M:%S", time.localtime()))
                 bot.start()    
             except:
-                mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_player"
+                mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challengerr"
                 print("Exception catch, relaunch")
 
-            mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_player"
+            mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challengerr"
 
 if __name__ == '__main__':
     print("ctrl+shift+b", "pause/run bot")
