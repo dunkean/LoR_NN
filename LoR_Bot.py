@@ -133,14 +133,14 @@ class Bot:
                 self.play_game()
                 game_id, won = Server.get_last_game()
 
-            print("Game", game_id, "Finished", won, "at", time.strftime("%H:%M:%S", time.localtime()), self.victories_count, "/", self.game_count)
             logging.info("...Game Finished...")
-            time.sleep(4)
+            time.sleep(5)
             self.game_count += 1
             if won: self.victories_count += 1
             self.mulligan_done = False
+            print("Game", game_id, "Finished", won, "at", time.strftime("%H:%M:%S", time.localtime()), self.victories_count, "/", self.game_count)
 
-def pause(self):
+def pause():
     global bot_active
     bot_active = not bot_active
     print("Running", bot_active)
@@ -174,10 +174,10 @@ def main():
                 print("Start at", time.strftime("%H:%M:%S", time.localtime()))
                 bot.start()    
             except:
-                mode = "rematch_bot" if (mode == "bot") else "rematch_player"
+                mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_player"
                 print("Exception catch, relaunch")
 
-            mode = "rematch_bot" if (mode == "bot") else "rematch_player"
+            mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_player"
 
 if __name__ == '__main__':
     print("ctrl+shift+b", "pause/run bot")

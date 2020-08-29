@@ -120,9 +120,9 @@ class Brain:
     def evaluate_board(self, state):
         # player_score = state.player.hp * 3
         # opp_score = state.opponent.hp * 3
-        player_score = (state.player.hp-20) if state.player.hp <= 0 else self.ease(state.player.hp)
+        player_score = (state.player.hp-30) if state.player.hp <= 0 else self.ease(state.player.hp)
         player_score = player_score * 1.9
-        opp_score = (state.opponent.hp-20) if state.opponent.hp <= 0 else self.ease(state.opponent.hp)
+        opp_score = (state.opponent.hp-30) if state.opponent.hp <= 0 else self.ease(state.opponent.hp)
         opp_score = opp_score * 1.9
 
         for c in state.player.army.deployed:

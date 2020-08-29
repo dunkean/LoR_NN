@@ -1,6 +1,6 @@
 Critical:
 ---------
-Continue button detected at 184:87 after match sometimes (detection bug or timing bug)
+Continue button detected at 184:87 after match sometimes (detection bug or timing bug - fixed on lower window dimension)
 Detection bug on hp/atk (to do complete testing)
 
 Important:

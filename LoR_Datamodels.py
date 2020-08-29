@@ -31,6 +31,9 @@ class Database:
         with open('set2-en_us.json', encoding="utf8") as json_file:
             for data in json.load(json_file):
                 self.code_dict[data["cardCode"]] = data
+        with open('set3-en_us.json', encoding="utf8") as json_file:
+            for data in json.load(json_file):
+                self.code_dict[data["cardCode"]] = data
 
     def card(self, code):
         if code in self.code_dict:
