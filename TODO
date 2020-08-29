@@ -33,3 +33,17 @@ Rules instancier (10%) - simple combats done missing everything else
 Opponent action predictor (0%) - what the next card / action
 Card text interpreter (0%) - text to formal rules
 Spell simulation (0%) - spell stack, targets, timing, effects
+
+
+
+
+
+
+BUG:
+
+  File "C:\Workspace\self\LoR_NN\LoR_ScreenHandler.py", line 309, in pattern_card_number
+    region.capture(self.mem_dc)
+  File "C:\Workspace\self\LoR_NN\LoR_ScreenHandler.py", line 84, in capture
+    logging.error("Unable to select or copy region", self.name)
+Message: 'Unable to select or copy region'
+Arguments: ('atk',)

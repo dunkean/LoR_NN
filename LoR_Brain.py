@@ -48,7 +48,8 @@ Skill_Bonus = {
     Skill.Vulnerable: 0,
     Skill.Weakest: 0,
     Skill.SpellOverwhelm: 0,
-    Skill.Autoplay: 0
+    Skill.Autoplay: 0,
+    Skill.Deep: 0.5
 }
 
 @dataclass

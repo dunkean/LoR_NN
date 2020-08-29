@@ -124,6 +124,7 @@ class Skill(IntEnum, metaclass=DefaultEnumMeta):
     Weakest = 34
     SpellOverwhelm = 35
     Autoplay = 36
+    Deep = 37
 
 
 
@@ -135,6 +136,7 @@ class SubType(IntEnum, metaclass=DefaultEnumMeta):
     TECH = 4
     YETI = 5
     ELNUK = 6
+    SEAMONSTER = 7
 
 class CardState(IntEnum, metaclass=DefaultEnumMeta):
     Active = 0
@@ -174,7 +176,7 @@ class CardDesc:
         self.base_health = data["health"]
         self.description = data["descriptionRaw"]
         self.levelupDescription = data["levelupDescriptionRaw"]
-        self.subtypes = [SubType[d] for d in data["subtypes"]]
+        self.subtypes = [SubType[d.replace(" ","")] for d in data["subtypes"]]
         self.skills = [Skill[d] for d in data["keywordRefs"]]
         self.speed = SpellSpeed.NA if data["spellSpeed"] == "" else SpellSpeed[data["spellSpeed"]]
         self.rarity = CardRarity.NoRarity if data["rarityRef"] == "None" else CardRarity[data["rarityRef"]]
