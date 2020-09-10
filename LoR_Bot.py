@@ -9,6 +9,7 @@ import LoR_func
 import LoR_Brain, LoR_Datamodels
 from LoR_Datamodels import Stage, ActionType
 from LoR_Brain import Action
+import traceback
 
 bot_active = True
 bot_running = True
@@ -16,6 +17,7 @@ bot_running = True
 class Bot:
     game_count = 0
     victories_count = 0
+    opp_name = ""
     
     global bot_active
     LoR = None
@@ -38,7 +40,7 @@ class Bot:
             self.launch_match(self.mode)
         
         while(True):
-            if self.game_count >= 6:
+            if self.game_count >= 20:
                 self.game_count = 0
                 return
             if bot_active:
@@ -60,6 +62,7 @@ class Bot:
             self.LoR.wait_n_click_img(["Continue", "Ready"])
 
         self.LoR.wait_for_game_to_start()
+        self.opp_name = Server.opp_name()
         time.sleep(3)
 
     def mulligan(self):
@@ -130,7 +133,7 @@ class Bot:
             logging.info("Mulligan detected")
             self.mulligan()
             self.mulligan_done = True
-
+            
         else:
             last_game_id, _ = Server.get_last_game()
             game_id = last_game_id
@@ -144,7 +147,7 @@ class Bot:
             self.game_count += 1
             if won: self.victories_count += 1
             self.mulligan_done = False
-            print("Game", game_id, "Finished", won, "at", time.strftime("%H:%M:%S", time.localtime()), self.victories_count, "/", self.game_count)
+            print("Game", game_id, "Finished", won, "vs", self.opp_name, "at", time.strftime("%H:%M:%S", time.localtime()), self.victories_count, "/", self.game_count)
 
 def pause():
     global bot_active
@@ -183,6 +186,7 @@ def main():
                 del bot
                 mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challenger"
                 print("Exception catch, relaunch")
+                logging.error(traceback.format_exc())
 
             mode = "rematch_bot" if (mode == "bot" or mode == "rematch_bot") else "rematch_challenger"
 

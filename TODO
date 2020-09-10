@@ -47,3 +47,7 @@ BUG:
     logging.error("Unable to select or copy region", self.name)
 Message: 'Unable to select or copy region'
 Arguments: ('atk',)
+
+
+
+Release DC in ScreenHandler on exception and destruction

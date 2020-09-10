@@ -8,11 +8,13 @@ import pyautogui
 from ctypes import windll
 import random
 import LoR_Constants
+import pywintypes
 
 import logging
 import sys
 import os
 import LoR_Datamodels
+import traceback
 
 from LoR_Datamodels import CardDesc, Card, Stage, State, CardType, TokenType
 
@@ -37,6 +39,7 @@ class Region:
         self.name = name
         self.desktop_img_dc = desktop_img_dc
         self.bitmap = win32ui.CreateBitmap()
+        logging.error("Name of region: %s", self.name)
         self.update_geometry(rect)
     
     def __del__(self):
@@ -49,7 +52,7 @@ class Region:
         return (self.left + int(self.width/2), self.top + int(self.height/2))
     
     def update_geometry(self, rect):
-        if rect[2] <= 0 or rect[3] <= 0:
+        if rect[2] < 0 or rect[3] < 0:
             logging.error("Unable to create region %s with non positive size: %i-%i", self.name, rect[2], rect[3])
         if self.width != rect[2] or self.height != rect[3]:
             try:
@@ -57,7 +60,7 @@ class Region:
                 pass
             except:
                 logging.error("Unable to create region %s compatible bitmap", self.name)
-                print(win32gui.error())
+                # print(win32gui.error())
                 pass
 
         self.left = rect[0]
@@ -86,8 +89,10 @@ class Region:
             pass
         except:
             logging.error("Unable to select or copy region", self.name)
-            print("CAPTURE ERROR")
-            print(win32gui.error())
+            logging.error(win32gui.error)
+            logging.error(traceback.format_exc())
+            # print("CAPTURE ERROR", 'Exception=>'+str(e))
+            print(win32gui.error)
             self.img = None
             pass
 
@@ -129,10 +134,13 @@ class LoR_Handler:
             self.update_geometry()
             self.OCR = LoR_OCR.OCR()
             self.matcher = LoR_PatternMatcher.Matcher(self.v_scale)
+            print("Error:", win32gui.error())
             pyautogui.FAILSAFE = False
         except win32gui.error:
             print("GUI error in init")
             print(win32gui.error())
+            logging.error(win32gui.error)
+            logging.error(traceback.format_exc())
             self.mem_dc.DeleteDC()
             self.desktop_img_dc.DeleteDC()
             win32gui.ReleaseDC(self.desktop_hwnd, self.desktop_dc)
@@ -150,6 +158,7 @@ class LoR_Handler:
     def update_geometry(self):
         wl, wt, _, wb = win32gui.GetWindowRect(self.LoR_hwnd)
         cl, ct, cr, cb = win32gui.GetClientRect(self.LoR_hwnd)
+        # print(cl, ct, cr, cb)
         if wt != ct or wb != cb: #Not FullScreen
             self.LoR_offset = self.sys_wdn_offset
         else:
@@ -189,13 +198,13 @@ class LoR_Handler:
     
     def btn_txt(self):
         self.update_geometry()
-        if "game_buton" not in self.regions:
+        if "game_button" not in self.regions:
             logging.info("Creating region for button text")
             btn_rect = LoR_Constants.game_button_rect(self.face_card_rect, self.Lor_app.width, self.Lor_app.height)
             btn_rect = (btn_rect[0] + self.Lor_app.left, btn_rect[1] + self.Lor_app.top, btn_rect[2], btn_rect[3])
-            self.regions["game_buton"] = Region("game_buton", self.desktop_img_dc, btn_rect)
+            self.regions["game_button"] = Region("game_button", self.desktop_img_dc, btn_rect)
 
-        region = self.regions["game_buton"]
+        region = self.regions["game_button"]
         region.capture(self.mem_dc)
         if region.img == "ERROR":
             return None

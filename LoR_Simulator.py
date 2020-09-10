@@ -40,7 +40,7 @@ def simulate_attack(atkr, atk_player, def_player, execute_dbl_strike = True):
             simulate_attack(atkr, atk_player, def_player, False)
 
         if A.has(Skill.Regeneration) and A.state != CardState.Dead: A._hp = A.base_health
-        if B.has(Skill.Regeneration) and A.state != CardState.Dead: B._hp = B.base_health
+        if B.has(Skill.Regeneration) and B.state != CardState.Dead: B._hp = B.base_health
         if A.has(Skill.Ephemeral): A.state = CardState.Dead
         if B.has(Skill.Ephemeral): B.state = CardState.Dead
     else:

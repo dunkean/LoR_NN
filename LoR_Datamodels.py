@@ -74,6 +74,7 @@ class CardRegion(IntEnum, metaclass=DefaultEnumMeta):
     Freljord = 5
     PiltoverZaun = 6
     Bilgewater = 7
+    Targon = 8
 
 class CardRarity(IntEnum, metaclass=DefaultEnumMeta):
     Unknown = 0
@@ -128,6 +129,8 @@ class Skill(IntEnum, metaclass=DefaultEnumMeta):
     SpellOverwhelm = 35
     Autoplay = 36
     Deep = 37
+    SpellShield = 38
+    Fury = 39
 
 
 

@@ -30,6 +30,13 @@ def get_last_game():
     result = get_game_result()
     return result["GameID"], result["LocalPlayerWon"]
 
+def opp_name():
+    r = board()
+    if r != None:
+        return r["OpponentName"]  
+    else: 
+        return "Unknown"
+
 def cards():
     r = board()
     if r != None:

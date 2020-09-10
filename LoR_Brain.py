@@ -49,7 +49,9 @@ Skill_Bonus = {
     Skill.Weakest: 0,
     Skill.SpellOverwhelm: 0,
     Skill.Autoplay: 0,
-    Skill.Deep: 0.5
+    Skill.Deep: 0.5,
+    Skill.SpellShield: 0.3,
+    Skill.Fury: 1
 }
 
 @dataclass
@@ -70,8 +72,8 @@ class Brain:
 
         # self.load_db()
 
-    def __del__(self):
-        del self.solver
+    # def __del__(self):
+    #     del self.solver
 
     # def load_db(self):
     #     with open('set1-en_us.json', encoding="utf8") as json_file:
@@ -154,7 +156,7 @@ class Brain:
         # print(cards, values, weights)
         capacities = [ state.player.mana, 6 - len(state.player.army.deployed) ] ## mana, board space, smana
         self.solver.Init(values, weights, capacities)
-
+        # print("Initialized")
         self.solver.Solve()
         best_value = 0
         best_card = None
@@ -268,6 +270,7 @@ class Brain:
                 atkrs[i].opp = None
 
         # print("++++ CHOSEN ++++", atkrs, " >>> ", max(scores))
+        del sim_state
         return atkrs
 
 
@@ -309,6 +312,7 @@ class Brain:
             atkrs[i].opp = blkrs[i]
         
         # print("++++ CHOSEN ++++", blkrs, " >>> ", max(scores))
+        del sim_state
         return blkrs
 
 
