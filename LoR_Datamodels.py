@@ -143,6 +143,7 @@ class SubType(IntEnum, metaclass=DefaultEnumMeta):
     YETI = 5
     ELNUK = 6
     SEAMONSTER = 7
+    DRAGON = 8
 
 class CardState(IntEnum, metaclass=DefaultEnumMeta):
     Active = 0

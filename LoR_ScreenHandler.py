@@ -624,7 +624,7 @@ class LoR_Handler:
                             logging.info("clicking screen dumbly")
                             # print("clicking screen dumbly")
                             r = self.Lor_app.rect()
-                            self.click((r[0] + r[2] - 10, 10))
+                            self.click((50, 50))
                         else:
                             # logging.info("reseting index of detection")
                             # index = max(0, index-1)
