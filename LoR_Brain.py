@@ -51,7 +51,8 @@ Skill_Bonus = {
     Skill.Autoplay: 0,
     Skill.Deep: 0.5,
     Skill.SpellShield: 0.3,
-    Skill.Fury: 1
+    Skill.Fury: 1,
+    Skill.Augment: 0.5
 }
 
 @dataclass
@@ -154,7 +155,8 @@ class Brain:
             weights[1].append(1 if card.type == CardType.Unit else 0)
 
         # print(cards, values, weights)
-        capacities = [ state.player.mana, 6 - len(state.player.army.deployed) ] ## mana, board space, smana
+        capacities = [ max(0,state.player.mana), 6 - len(state.player.army.deployed) ] ## mana, board space, smana
+        # print(state.player.mana)
         self.solver.Init(values, weights, capacities)
         # print("Initialized")
         self.solver.Solve()

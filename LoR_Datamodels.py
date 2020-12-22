@@ -131,6 +131,7 @@ class Skill(IntEnum, metaclass=DefaultEnumMeta):
     Deep = 37
     SpellShield = 38
     Fury = 39
+    Augment = 40
 
 
 
@@ -144,6 +145,7 @@ class SubType(IntEnum, metaclass=DefaultEnumMeta):
     ELNUK = 6
     SEAMONSTER = 7
     DRAGON = 8
+    CELESTIAL = 9
 
 class CardState(IntEnum, metaclass=DefaultEnumMeta):
     Active = 0
