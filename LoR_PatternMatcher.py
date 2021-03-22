@@ -34,7 +34,7 @@ class Matcher:
             self.scaled_patterns[name] = pattern_cv_img
 
     def register_img_patterns(self):
-        list_btn = ["Play", "vsAI", "Friends", "Spare", "Challenge", "Accept", "Play", "vsAI", "Versus", "Replay", "Continue", "Ready", "Mulligan"]
+        list_btn = ["Play", "vsAI", "Friends", "Spare", "Challenge", "Accept", "Play", "vsAI", "Versus", "Replay", "Continue", "Continue2", "Ready", "Mulligan"]
         for btn in list_btn:
             self.register_pattern(btn)
 
@@ -87,6 +87,38 @@ class Matcher:
         # im = im.filter(ImageFilter.GaussianBlur(4))
         # im = ImageOps.invert(im)
         return im
+
+    def stun_filter_img(self, im):
+        if im == None:
+            return False
+        dat = im.getdata()
+        count = 0
+        for d in dat:
+            if d[0] >= 219 and d[0] <= 229 and d[1] >= 63 and d[1] <= 76 and d[2] >= 254:
+               count += 1
+        if count > 3:
+            return True
+        return False
+
+    def frozen_filter_img(self, im):
+        if im == None:
+            return False
+        dat = im.getdata()
+        count = 0
+        for d in dat:
+            if d[0] >= 56 and d[0] <= 58 and d[1] >= 176 and d[1] <= 178 and d[2] >= 229 and d[2] <= 230:
+               count += 1
+        if count >= 3:
+            return True
+        return False
+
+    def detect_buff(self, img, name):
+        if "stun" in name:
+            # img.show()
+            return self.stun_filter_img(img)
+        elif "frozen" in name:
+            # img.show()
+            return self.frozen_filter_img(img)
 
     def pattern_detect_number(self, img, name, double_digit = False):
         interval = None

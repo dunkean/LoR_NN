@@ -57,9 +57,9 @@ class Bot:
         elif mode == "challenged":
             self.LoR.wait_n_click_img(["Accept", "Versus", "Play"])
         elif mode == "rematch_bot":
-            self.LoR.wait_n_click_img(["Continue","Replay"])
+            self.LoR.wait_n_click_img(["Continue2","Replay"])
         elif mode == "rematch_challenger":
-            self.LoR.wait_n_click_img(["Continue", "Ready"])
+            self.LoR.wait_n_click_img(["Continue2", "Ready"])
 
         self.LoR.wait_for_game_to_start()
         self.opp_name = Server.opp_name()
@@ -95,6 +95,10 @@ class Bot:
             if tries > 3:
                 break
 
+    
+        # time.sleep(6)
+        # print("******************\n")
+        # return
 
         
         action = self.brain.get_next_action(state)
@@ -163,7 +167,8 @@ def abort_bot():
 def main():
     global bot_running
     logging.basicConfig(
-        level=logging.WARN,
+        # level=logging.INFO,
+        level=logging.ERROR,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
             logging.FileHandler("debug.log")
@@ -175,10 +180,12 @@ def main():
     mode = sys.argv[1]
 
     if sys.argv[1] == "capture":
-        LoR_Handler.raw_capture()
+        bot = Bot(mode)
+        bot.LoR.raw_capture()
     else:
         while(bot_running):
             bot = Bot(mode)
+            # bot.start()
             try:
                 print("Start at", time.strftime("%H:%M:%S", time.localtime()))
                 bot.start()    

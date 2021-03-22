@@ -46,6 +46,14 @@ class OCR():
         # im = ImageOps.invert(im)
         return im
 
+    def filter_img(self, im):
+        if im == None:
+            return im
+        # im = ImageOps.grayscale(im)
+        # im = im.filter(ImageFilter.GaussianBlur(4))
+        # im = ImageOps.invert(im)
+        return im
+
     def ocr_txt(self, img):
         im = self.ocr_filter_img(img)
         self.ocr_api.SetPageSegMode(PSM.SINGLE_BLOCK)

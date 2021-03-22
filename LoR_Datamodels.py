@@ -34,6 +34,9 @@ class Database:
         with open('set3-en_us.json', encoding="utf8") as json_file:
             for data in json.load(json_file):
                 self.code_dict[data["cardCode"]] = data
+        with open('set4-en_us.json', encoding="utf8") as json_file:
+            for data in json.load(json_file):
+                self.code_dict[data["cardCode"]] = data
 
     def card(self, code):
         if code in self.code_dict:
@@ -75,6 +78,7 @@ class CardRegion(IntEnum, metaclass=DefaultEnumMeta):
     PiltoverZaun = 6
     Bilgewater = 7
     Targon = 8
+    Shurima = 9
 
 class CardRarity(IntEnum, metaclass=DefaultEnumMeta):
     Unknown = 0
@@ -132,6 +136,9 @@ class Skill(IntEnum, metaclass=DefaultEnumMeta):
     SpellShield = 38
     Fury = 39
     Augment = 40
+    LandmarkVisualOnly = 41
+    Focus = 42
+
 
 
 
@@ -146,6 +153,8 @@ class SubType(IntEnum, metaclass=DefaultEnumMeta):
     SEAMONSTER = 7
     DRAGON = 8
     CELESTIAL = 9
+    ASCENDED = 10
+    TREASURE = 11
 
 class CardState(IntEnum, metaclass=DefaultEnumMeta):
     Active = 0
@@ -206,6 +215,9 @@ class Card(CardDesc):
     _cost: int = -1
     _atk: int = -1
     _hp: int = -1
+    _stun: bool = False
+    _frozen: bool = False
+
     # dmg: int = 0
     detected_skills: List[Skill] = field(default_factory=list)
 
@@ -232,7 +244,12 @@ class Card(CardDesc):
     
     def to_str(self):
         if self._cost == -1:
-            return self.name + "(" + str(self.atk()) + ":" + str(self.hp()) + ")"
+            st = self.name + "(" + str(self.atk()) + ":" + str(self.hp()) + ")"
+            if self._stun:
+                st = '[st]' + st
+            if self._frozen:
+                st = '[fr]' + st
+            return st
         else:
             return "(" + str(self.cost()) + ")" + self.name
 

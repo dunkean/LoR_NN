@@ -16,7 +16,7 @@ import os
 import LoR_Datamodels
 import traceback
 
-from LoR_Datamodels import CardDesc, Card, Stage, State, CardType, TokenType
+from LoR_Datamodels import CardDesc, Card, Stage, State, CardType, TokenType, Skill
 
 import LoR_Brain
 import LoR_ServerHandler as queries
@@ -39,7 +39,7 @@ class Region:
         self.name = name
         self.desktop_img_dc = desktop_img_dc
         self.bitmap = win32ui.CreateBitmap()
-        logging.error("Name of region: %s", self.name)
+        # logging.error("Name of region: %s", self.name)
         self.update_geometry(rect)
     
     def __del__(self):
@@ -75,6 +75,7 @@ class Region:
 
     def capture(self, mem_dc):
         if self.width <= 0 or self.height <= 0 or self.bitmap == None:
+            logging.error("Problem with region: %s", self.name)
             print("PROBLEM WITH REGION", self.name)
             return
         try:
@@ -239,7 +240,7 @@ class LoR_Handler:
         return None
 
     def wait_for_next_state(self):
-        pyautogui.moveTo(self.posToGlobal((0,0)))
+        # pyautogui.moveTo(self.posToGlobal((0,0)))
         self.update_geometry()
         state = State()
         btn = self.get_btn()
@@ -255,6 +256,8 @@ class LoR_Handler:
         logging.info("OCR status: %s", state.to_str())
         ### Cards ###
         self.get_board_cards(state)
+        print("Player Army: %s", state.player.army.to_str())
+        print("Opponent Army: %s", state.opponent.army.to_str())
         logging.info("Player Army: %s", state.player.army.to_str())
         logging.info("Opponent Army: %s", state.opponent.army.to_str())
 
@@ -349,6 +352,16 @@ class LoR_Handler:
         else:
             return self.matcher.pattern_detect_number(region.img, "unit", True)
 
+    def detect_buff(self, card, name):
+        rect = LoR_Constants.card_prop_rect(card, name, "bot", self.Lor_app.width, self.Lor_app.height)
+        rect = (rect[0] + self.Lor_app.left, rect[1] + self.Lor_app.top, rect[2], rect[3])
+        region = Region(name, self.desktop_img_dc, rect)
+        region.capture(self.mem_dc)
+        if region.img == None:
+            return False
+        
+        return self.matcher.detect_buff(region.img, name)
+
 
     def update_card_cor(self, card):
         logging.info("Update card position")
@@ -377,19 +390,28 @@ class LoR_Handler:
             h = json_card["Height"]
             w = json_card["Width"]
             card.from_json(json_card, (x,y,x+w,y+h), (w,h), (x+int(w/2), y+int(h/2)))
+            
+            # logging.info(card.name)
+            logging.info(card.to_str())
 
+            if card.has(Skill.LandmarkVisualOnly):
+                continue
+                
             if y < 0: 
                 state.opponent.army.hand.append(card)
             elif y < step: 
                 state.opponent.army.deployed.append(card)
                 card._hp = self.pattern_card_number(card, "hp", "bot")
                 card._atk = self.pattern_card_number(card, "atk", "bot")
-                # card.detected_skills
+                # card._stun = self.detect_buff(card, "stun")
+                # card._stun = self.detect_buff(card, "frozen")
+                
             elif y < 2*step: 
                 state.opponent.army.pit.append(card)
                 card._hp = self.pattern_card_number(card, "hp", "bot")
                 card._atk = self.pattern_card_number(card, "atk", "bot")
-                # card.detected_skills
+                # card._stun = self.detect_buff(card, "stun")
+
             elif y < 3*step: 
                 state.spell_arena.append(card)
             elif y < 4*step: 
@@ -397,11 +419,13 @@ class LoR_Handler:
                 if card.type == CardType.Unit:
                     card._hp = self.pattern_card_number(card, "hp", "top")
                     card._atk = self.pattern_card_number(card, "atk", "top")
+                    # card._stun = self.detect_buff(card, "stun")
                     # card.detected_skills
             elif y < 5*step: 
                 state.player.army.deployed.append(card)
                 card._hp = self.pattern_card_number(card, "hp", "top")
                 card._atk = self.pattern_card_number(card, "atk", "top")
+                # card._stun = self.detect_buff(card, "stun")
                 # card.detected_skills
             else: 
                 state.player.army.hand.append(card)
@@ -492,7 +516,7 @@ class LoR_Handler:
             logging.info("click %i:%i", global_pos[0], global_pos[1])
             pyautogui.moveTo(global_pos[0], global_pos[1], self.duration(0.5), pyautogui.easeInQuad)
         pyautogui.click()
-        time.sleep(0.05)
+        time.sleep(0.1)
 
 
 
@@ -624,12 +648,12 @@ class LoR_Handler:
                             logging.info("clicking screen dumbly")
                             # print("clicking screen dumbly")
                             r = self.Lor_app.rect()
-                            self.click((50, 50))
-                        else:
-                            # logging.info("reseting index of detection")
-                            # index = max(0, index-1)
-                            # logging.info("clicking last detected position")
-                            print("clicking last detected position")
+                            self.click((150, 150))
+                        # else:
+                        #     # logging.info("reseting index of detection")
+                        #     # index = max(0, index-1)
+                        #     # logging.info("clicking last detected position")
+                        #     print("clicking last detected position")
                             self.click(last_detected_pos)
                 else:
                     logging.info("Clicking %s", name)
@@ -653,12 +677,12 @@ class LoR_Handler:
 
         time.sleep(5)
 
-def raw_capture():
-    LoR = launch()
-    LoR.update_geometry()
-    LoR.Lor_app.capture(LoR.mem_dc)
-    # im = ImageOps.grayscale(LoR.Lor_app.img)
-    # im = ImageOps.invert(im)
-    im = LoR.ocr_filter_img(LoR.Lor_app.img)
-    im.save("capture.png")
+    def raw_capture(self):
+        # LoR = launch()
+        self.update_geometry()
+        self.Lor_app.capture(self.mem_dc)
+        # im = ImageOps.grayscale(LoR.Lor_app.img)
+        # im = ImageOps.invert(im)
+        im = self.OCR.filter_img(self.Lor_app.img)
+        im.save("capture.png")
 

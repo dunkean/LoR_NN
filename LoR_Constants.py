@@ -48,6 +48,13 @@ def card_prop_rect(card, prop, pos, app_width, app_height):
             return (l+int(w/2-h/3) , b-int(h/4), int(h) , int(6*h/30))
         else:
             return (l+int(w/2-h/2) , b-int(h/4) , int(h) , int(6*h/30))
+    elif prop == "stun":
+            return (l+int(w/2-h/10) , t+int(h/2-h/7) , int(h/5) , int(h/5))
+    elif prop == "shield":
+        return (l , t , int(h/20) , int(h/20))
+    elif prop == "frozen":
+        return (l+int(w/2-h/4) , b-int(4*h/9) , int(h/4) , int(h/5))
+    
 
 
 def status_number_rect(name, opp, face_card, opp_face_card, app_width, app_height):

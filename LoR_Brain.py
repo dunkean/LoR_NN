@@ -232,6 +232,7 @@ class Brain:
         # print("Initial score:", initial_score)
         # print("Player:", state.player.army.to_str())
         # print("Opponent:", state.opponent.army.to_str())
+        best_score = -9999
         for i in range(len(atkrs_list)) :
             blkrs_list = blkrs_perm[i]
             atkrs = atkrs_list[i]
@@ -255,9 +256,17 @@ class Brain:
                 sim_state.opponent.army.deployed = [c for c in state.opponent.army.deployed if not c in list(blkrs)]
                 new_state = simulator.simulate_fight(sim_state)
                 new_score = self.evaluate_board(new_state)
+                if new_score >= best_score:
+                    local_scores.append(new_score)
+                else:
+                    local_scores.append(-1)
+                    break
                 # print("***--> ", blkrs, " >>> ", new_score)
-                local_scores.append(new_score)
-            scores.append(min(local_scores))
+                
+            local_score = min(local_scores)
+            if local_score > best_score:
+                best_score = local_score
+            scores.append(local_score)
             best_block_index.append(local_scores.index(max(local_scores)))
 
         best_atk_index = scores.index(max(scores))
