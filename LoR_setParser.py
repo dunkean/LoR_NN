@@ -100,8 +100,26 @@ actions_on_board = ["RefillMana", "StrikeNexus", "Rally"]
 events_on_cards = ["Allegiance", "Drawn", "Discarded", "Have_X_Cards", "Cast", "Summoned", "Deep", "Daybreak", "Nightfall"]
 events_on_units = ["Damage", "Supported", "Strongest", "Weakest", "Behold", "Take_Damage", "Dies", "Survived", "KeywordChanged", "FirstAttack", "FirstRoundAttack"]
 events_on_board = ["RoundStart", "RoundEnd", "NexusDamage", "OppNexusDamage", "Plunder", "Number_of_allies"]
-
 keywords_on_units = ['stun', 'recall', 'fleeting', 'playskillmark', 'barrier', 'lifesteal', 'elusive', 'frostbite', 'last', 'ephemeral', 'obliterate', 'attackskillmark', 'capture', 'quick', 'weakest', 'challenger', 'fearsome', 'drain', 'overwhelm', 'tough', 'burst', 'skill', 'enlightened', 'fast', 'slow', 'double', 'vulnerable', 'scout', 'spellshield', 'nightfall', 'invoke', 'fury', 'regeneration', 'daybreak']
+
+
+
+
+#### DATA.JSON
+# keywords:
+## - effect = [A,B] : A or B    - effect = [[A,B]] : A and B
+### - target: ally, evt_target, atking_ennemy,other_allies,ennemy,supported, unit, self
+
+#--- ACTIONS ---#
+### - stats: +x|+y
+### - deal: x
+### - strike
+### - buff: (+skill,-skill)
+
+### - trigger: (summoned, round_end, support)
+#### - source: player
+#### - target: ennemy
+#### - event: (stun, recall)
 
 
 
@@ -126,7 +144,7 @@ keywords_on_units = ['stun', 'recall', 'fleeting', 'playskillmark', 'barrier', '
 #   Spectral Matron (Trigger.Summon-Play, None, Action.SetVar, 1, Target.allyinhand, id) (Action.Summon, None, Target.Var) (Action.SetKeyword, Keyword.Ephemeral, Target.Var)
 # *******Pb de variables à transmettre à l_action suivante
 #
-#
+# on_keyword(['stun','recall']) do Action.deal(2)
 #-------- Instant
 #   Riptide: if (Action.RemoveFromCombat, None, Target.card, id) then (Action.Rally, None, Target.player, None)
 #   Vladimir's Transfusion if (Action.Deal, 1, Target.ally, id) then (Action.Grant, (2,2), Target.ally, [id])
@@ -139,3 +157,24 @@ keywords_on_units = ['stun', 'recall', 'fleeting', 'playskillmark', 'barrier', '
 #               action("Deal", evt.card, 2)
 # 
 # }
+
+
+
+
+### CARD - Trigger<ONCE, ALWAYS, ON_BOARD>(origin, type) - condition > action
+
+##Format - Name: Context - Src_Filter - Event(event_src[], event_targets[]) - Action
+
+## YASUO    - Trigger_1: Always - Units - keyword(["stun", "recall"]) - counter++
+##          - Trigger_2: Always - counter > 4 - level_up
+##          - Trigger_3: OnBoard - Ennemy_units - keywordadded(["stun", "recall"]) - Deal(2, event_src)
+
+## The Leviathan - Trigger_1: Once - Me - onsummon - Draw("02NX001")
+#                - Trigger_2: Always - None - round_start - Deal(1, oppNexus)
+#                - Trigger_3: Always - None - round_start - Deal(1, oppNexus)
+#                - Trigger_4: Always - None - round_start - Deal(1, oppNexus)
+# 
+# 
+# Fiora    - Trigger_1: Always - Units - keyword(["stun", "recall"]) - counter++
+##         - Trigger_2: Always - counter > 2 - level_up
+##         - Trigger_3: OnBoard - Ennemy_units - keywordadded(["stun", "recall"]) - Deal(2, event_src)

@@ -1,6 +1,6 @@
 from LoR_Datamodels import Card, State, ActionType, CardType, Database, Stage, CardRarity, TokenType, Skill, CardState
 import copy
-
+from dataclasses import dataclass, field
 
 def simulate_attack(atkr, atk_player, def_player, execute_dbl_strike = True):
     A = atkr
@@ -69,7 +69,16 @@ def simulate_fight(state):
 
 
 
+@dataclass
+class Game:
+    
+
+
 # def execute_state(state):
+
+
+#### COMBAT TRIGGERS
+# WHEN - attack, strike, support, strike_nexus
 
 
 
