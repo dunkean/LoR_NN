@@ -11,7 +11,7 @@ numpy==1.18.4
 opencv-contrib-python==3.4.2.16
 opencv-python==3.4.2.16
 ortools==7.6.7691
-Pillow==7.1.2
+Pillow==8.1.1
 protobuf==3.11.3
 PyAutoGUI==0.9.50
 PyGetWindow==0.0.8
