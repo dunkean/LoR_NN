@@ -1,6 +1,7 @@
-from LoR_Datamodels import Card, State, ActionType, CardType, Database, Stage, CardRarity, TokenType, Skill, CardState
+from LoR_Datamodels import Card, CardDesc, State, ActionType, CardType, Database, Stage, CardRarity, TokenType, Skill, CardState, Player
 import copy
 from dataclasses import dataclass, field
+from typing import List, Tuple, Type
 
 def simulate_attack(atkr, atk_player, def_player, execute_dbl_strike = True):
     A = atkr
@@ -68,55 +69,3 @@ def simulate_fight(state):
     return sim_state
 
 
-
-@dataclass
-class Game:
-    
-
-
-# def execute_state(state):
-
-
-#### COMBAT TRIGGERS
-# WHEN - attack, strike, support, strike_nexus
-
-
-
-
-
-############ TESTING (olv version) ###################
-
-# def random_unit(lvl = 9, nb_skills = 2):
-#     skills = random.choices(short_sk, k=random.randint(0,nb_skills))
-#     atk = random.randint(1,lvl)
-#     hp = random.randint(1,lvl)
-#     return Unit(atk, hp, skills, uuid.uuid1())
-
-
-# ## test fight
-# atkrs = []
-# blkrs = []
-# for i in range(5):
-#     atkrs.append(random_unit(6,0))
-
-# for j in range(3):
-#     blkrs.append(random_unit(4,0))
-        
-# print(round(evaluate_board(atkrs, True),2), "****** VS ********", round(evaluate_board(blkrs, True),2))
-# # get_best_block(atkrs, blkrs)
-# get_best_attack(atkrs, blkrs)
-
-
-
-# # import json
-# # json_file = open('set1-en_us.json', encoding="utf8")
-# # dict = {}
-# # for p in json.load(json_file):
-# #     if p["type"] == "Spell":
-# #         dict[p["descriptionRaw"]] = None
-
-# # print(list(dict))
-
-# # file = open("log_simu.txt","w") 
-# # file.write("\n".join(c for c in list(dict)))
-# # file.close()
